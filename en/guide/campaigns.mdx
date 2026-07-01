@@ -12,7 +12,7 @@ Click **New campaign** and choose a build mode:
 | Mode | Best for |
 | --- | --- |
 | **Editor** | Full control with Notion-style blocks. Type `/` to insert blocks — text, headings, images, a **Button** (CTA with label, URL and color), a **Divider** and more. |
-| **AI Chat** | AI-guided creation. Pick a goal — **Newsletter, Product update, Promotion or Win-back** — and the assistant drafts content, subject lines and preview text. See [Building with AI](/en/guide/building-with-ai). Consumes [AI credits](/en/guide/ai-credits) and needs a connection (offline switches to the Editor). |
+| **Assistant chat** | Assistant-guided creation. Pick a goal — **Newsletter, Product update, Promotion or Win-back** — and the assistant drafts content, subject lines and preview text. See [Building with the assistant](/en/guide/building-with-ai). Consumes [AI credits](/en/guide/ai-credits) and needs a connection (offline switches to the Editor). |
 
 ## Campaign settings
 
@@ -31,7 +31,7 @@ The settings panel groups everything you configure:
 
 ## Pre-send analysis
 
-When you choose **Send** or **Schedule**, Railmail runs a **Pre-Send Analysis** before anything goes out. It saves a draft, runs deliverability checks, then adds an AI review and an overall score.
+When you choose **Send** or **Schedule**, Railmail runs a **Pre-Send Analysis** before anything goes out. It saves a draft, runs deliverability checks, then adds an assistant review and an overall score.
 
 Checks include: link validation, spam score and spam words, subject length, personalization, unsubscribe link, image-to-text ratio, **sender domain verified** (SPF/DKIM/DMARC), recipient count, **domain warming quota**, merge tags, plain-text version, content length and per-topic consent.
 
@@ -41,7 +41,7 @@ Each check returns **Pass**, **Warning** or **Fail** with a severity:
 - **Warnings** let you proceed with **Send anyway** / **Schedule anyway**.
 
 <Note>
-  The AI portion may be skipped if the score is too low, a critical check fails, or you're out of AI credits. The deliverability checks still run.
+  The assistant review may be skipped if the score is too low, a critical check fails, or you're out of AI credits. The deliverability checks still run.
 </Note>
 
 ## Schedule and send
