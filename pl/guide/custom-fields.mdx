@@ -1,0 +1,51 @@
+---
+title: "Pola niestandardowe"
+description: "Rozszerz profile subskrybentów własnymi atrybutami."
+---
+
+**Pola niestandardowe** pozwalają przechowywać własne atrybuty subskrybentów — a następnie używać ich w [segmentach](/pl/guide/segments), [kampaniach](/pl/guide/campaigns) i [automatyzacjach](/pl/guide/automations).
+
+## Utwórz pole niestandardowe
+
+W **Polach niestandardowych** otwórz kreator pola, wybierz **typ** i skonfiguruj właściwości:
+
+| Właściwość | Uwagi |
+| --- | --- |
+| Nazwa wyświetlana | Czytelna etykieta. |
+| Klucz pola | Używany w placeholderach jako `{{custom.<klucz>}}`. Tylko małe litery, cyfry i podkreślenia. |
+| Opis | Opcjonalne wyjaśnienie. |
+| Wartość domyślna | Opcjonalna wartość używana, gdy żadna nie jest ustawiona. |
+| Wymagane przy edycji subskrybentów | Czyni pole obowiązkowym w formularzu subskrybenta. |
+| Opcje | Dla pól **Pojedynczy wybór** i **Wielokrotny wybór**. |
+
+Możesz też ustawić walidację: min/max długość, wzorzec regex, min/max wartość lub krok — zależnie od typu.
+
+## Typy pól
+
+| Typ | Do czego |
+| --- | --- |
+| Tekst / Długi tekst | Krótki lub wielowierszowy tekst. |
+| Liczba / Liczba dziesiętna | Liczby całkowite lub ułamkowe. |
+| Data / Data i czas | Daty, z czasem lub bez. |
+| Tak/Nie | Wartości logiczne. |
+| Pojedynczy wybór | Wybór jednej opcji z listy. |
+| Wielokrotny wybór | Wybór kilku opcji. |
+| URL / E-mail / Telefon | Formaty z walidacją. |
+| Wyliczane | Wartość wyliczona z innych pól przez edytor logiki. |
+
+## Użycie pola w treści
+
+Odwołaj się do pola w treści e-maila i tagach personalizacji przez jego klucz:
+
+```
+Cześć {{custom.first_name}}, Twój plan to {{custom.subscription_tier}}.
+```
+
+<Warning>
+  Nieznane lub błędnie zapisane placeholdery są wykrywane przez [analizę przedwysyłkową](/pl/guide/campaigns#analiza-przedwysylkowa) kampanii i mogą zablokować wysyłkę. Sprawdzaj klucze pól.
+</Warning>
+
+## Zakres i status
+
+- **Zakres** — pola są **Systemowe** (wbudowane) lub **Zdefiniowane przez użytkownika** (utworzone przez Ciebie).
+- **Status** — **Aktywne** lub **Zarchiwizowane**. Zarchiwizuj pole, aby je wycofać bez usuwania danych; później możesz je przywrócić lub usunąć.

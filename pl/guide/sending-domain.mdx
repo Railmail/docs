@@ -1,0 +1,52 @@
+---
+title: "Domena wysyłkowa"
+description: "Uwierzytelnij domenę przez DNS, aby e-maile trafiały do skrzynki odbiorczej."
+---
+
+Twoja **domena wysyłkowa** to domena, z której wysyłane są e-maile. Uwierzytelnienie jej rekordami DNS mówi dostawcom skrzynek, że Twoja poczta jest legalna, co jest kluczowe dla dostarczalności. Skonfiguruj ją w **Ustawienia → Domena**.
+
+## Wybierz domenę
+
+| Opcja | Kiedy używać |
+| --- | --- |
+| **Domena własna** | Zalecana na produkcji. Wysyłaj z własnej domeny (np. `mail.twojafirma.com`). |
+| **Domena systemowa** | Szybki start na `twoja-przestrzen.railmail.com`. Zawiera branding Railmail. |
+
+## Zweryfikuj przez DNS
+
+<Steps>
+  <Step title="Skopiuj rekordy">
+    Railmail pokazuje rekordy **SPF, DKIM i DMARC** do dodania. Dla każdego zanotuj jego **nazwę**, **wartość** i **TTL**.
+  </Step>
+  <Step title="Dodaj je u dostawcy DNS">
+    Utwórz rekordy w ustawieniach DNS swojej domeny. Zmiany mogą potrzebować czasu na propagację.
+  </Step>
+  <Step title="Zweryfikuj">
+    W Railmail kliknij **Zweryfikuj DNS**. Gdy rekordy zostaną znalezione, domena stanie się zweryfikowana.
+  </Step>
+</Steps>
+
+Railmail pokazuje też **wskaźnik zdrowia / reputacji domeny**, abyś mógł monitorować, jak dostawcy skrzynek postrzegają Twoją domenę.
+
+## Warming (rozgrzewanie)
+
+Nowe domeny są **rozgrzewane** — wysyłają pod dziennym limitem, który rośnie z czasem, przechodząc z fazy początkowej do dojrzałej. Chroni to reputację nadawcy. Możesz monitorować dzienny limit, współczynnik odbić i skarg oraz **wstrzymać lub wznowić** warming.
+
+<Warning>
+  Limit warmingu może ograniczać, ilu odbiorców osiągnie kampania dziennie. Jeśli wysyłka jest ograniczona, jest to oczekiwane podczas warmingu.
+</Warning>
+
+## Statusy domeny
+
+| Status | Znaczenie |
+| --- | --- |
+| Aktywna | Zweryfikowana i wysyłająca. |
+| Oczekuje weryfikacji | Czeka na znalezienie rekordów DNS. |
+| Weryfikacja nieudana | Rekordy nieznalezione lub niepoprawne. |
+| Osłabiona | Problem z reputacją lub konfiguracją. |
+| Zawieszona / Zablokowana | Wysyłka zatrzymana z powodu poważnego problemu. |
+| Wygasła | Weryfikacja wymaga odnowienia. |
+
+## Stopka e-maila
+
+W **Ustawienia → E-mail** skonfiguruj zgodną z prawem stopkę dodawaną do każdego e-maila: nazwa i adres firmy oraz treść linków wypisu i centrum preferencji (zawsze dołączane). Możesz dodać własny tekst stopki oraz usunąć plakietkę *Powered by Railmail* w planach płatnych.

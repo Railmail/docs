@@ -1,0 +1,51 @@
+---
+title: "Custom fields"
+description: "Extend subscriber profiles with your own attributes."
+---
+
+**Custom fields** let you store your own attributes on subscribers — then use them in [segments](/en/guide/segments), [campaigns](/en/guide/campaigns) and [automations](/en/guide/automations).
+
+## Create a custom field
+
+In **Custom fields**, open the field builder, pick a **type**, and configure its properties:
+
+| Property | Notes |
+| --- | --- |
+| Display name | The human-readable label. |
+| Field key | Used in placeholders as `{{custom.<key>}}`. Lowercase letters, digits and underscores only. |
+| Description | Optional explanation. |
+| Default value | Optional value used when none is set. |
+| Required when editing subscribers | Makes the field mandatory in the subscriber form. |
+| Options | For **Single choice** and **Multiple choice** fields. |
+
+You can also set validation: min/max length, a regex pattern, min/max value or step, depending on the type.
+
+## Field types
+
+| Type | Use for |
+| --- | --- |
+| Text / Long text | Short or multi-line text. |
+| Number / Decimal | Whole or fractional numbers. |
+| Date / Date & time | Dates, with or without a time. |
+| Yes/No | Boolean values. |
+| Single choice | Pick one option from a list. |
+| Multiple choice | Pick several options. |
+| URL / Email / Phone | Validated formats. |
+| Computed | A value derived from other fields via a logic editor. |
+
+## Using a field in content
+
+Reference a field in email content and merge tags with its key:
+
+```
+Hi {{custom.first_name}}, your plan is {{custom.subscription_tier}}.
+```
+
+<Warning>
+  Unknown or misspelled placeholders are flagged by the campaign [pre-send analysis](/en/guide/campaigns#pre-send-analysis) and can block a send. Double-check field keys.
+</Warning>
+
+## Scope and status
+
+- **Scope** — fields are either **System** (built in) or **User-defined** (created by you).
+- **Status** — **Active** or **Archived**. Archive a field to retire it without deleting data; you can unarchive or delete it later.

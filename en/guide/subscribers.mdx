@@ -1,0 +1,63 @@
+---
+title: "Subscribers"
+description: "Manage your contact base with full consent tracking."
+---
+
+**Subscribers** are the people on your lists. Railmail tracks each subscriber's consent per topic, so you always know who agreed to what.
+
+An **active subscriber** is someone with a *subscribed* status in at least one topic, with valid consent. Unsubscribed, bounced, duplicate and archived contacts don't count toward your plan's subscriber limit.
+
+## Add a single subscriber
+
+In **Subscribers**, click **Add subscriber** and fill in:
+
+| Field | Notes |
+| --- | --- |
+| Email | Required. |
+| First name / Last name | Optional. |
+| Phone | Optional. |
+| Topics | **Required** — pick at least one topic to subscribe them to. |
+| Consent source | How consent was obtained: Manual, Import, API or Form. |
+| Custom fields | Any custom attributes defined in your project. |
+
+If a chosen topic uses double opt-in, the subscriber receives a **confirmation email** and stays in *Pending confirmation* until they confirm.
+
+## Import many subscribers
+
+Use import to bring in an existing list.
+
+<Steps>
+  <Step title="Upload a file">
+    Upload a **CSV** file with your contacts.
+  </Step>
+  <Step title="Map the columns">
+    Match each column in your file to a Railmail field (email, name, phone, custom fields).
+  </Step>
+  <Step title="Choose consent handling">
+    Keep **double opt-in** enabled (recommended). Turn on **Validate consents on import** to check consent as records load. Single opt-in shows a legal warning — use it only when you already hold valid consent.
+  </Step>
+</Steps>
+
+You can also **export** your subscribers at any time.
+
+## Subscriber statuses
+
+| Status | Meaning |
+| --- | --- |
+| Subscribed | Has valid consent for at least one topic. |
+| Unsubscribed | Opted out of all topics. |
+| Bounced | Email could not be delivered. |
+| Complained | Marked your email as spam. |
+| Pending | Awaiting double opt-in confirmation. |
+| Suppressed | On the suppression list — can't receive any mail. |
+
+## Subscriber details
+
+Open a subscriber to see their **Properties** (status, email, source, double opt-in, name, subscribe/unsubscribe dates, created/updated) plus two tabs:
+
+- **Consents** — grant, revoke or resend confirmation for each topic. See [Topics](/en/guide/topics) for how consent works.
+- **Segments** — which segments the subscriber belongs to.
+
+<Tip>
+  Extend subscriber profiles with your own attributes using [custom fields](/en/guide/custom-fields) — then use them in segments, campaigns and automations.
+</Tip>

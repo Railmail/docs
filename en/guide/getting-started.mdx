@@ -1,0 +1,131 @@
+---
+title: "Getting started"
+description: "From signing up to sending your first campaign — the full path through Railmail."
+---
+
+This guide walks you through Railmail end to end: from creating your account to sending your first campaign and reading its report. Each step links to a deeper guide when you want more detail.
+
+Railmail is built around three ideas:
+
+- **Topics** are the *consent layer* — they define **what** a subscriber agrees to receive.
+- **Segments** are the *targeting layer* — they define **who** receives a campaign.
+- **Campaigns** combine the two: you send content to a **topic**, optionally narrowed by a **segment**.
+
+Keep that in mind and the rest falls into place.
+
+## 1. Create your account and workspace
+
+<Steps>
+  <Step title="Sign up">
+    Register with your email and password, or **Continue with Google**. New accounts start with a **14-day free trial**. Verify your email with the code Railmail sends you.
+  </Step>
+  <Step title="Complete onboarding">
+    The onboarding wizard sets up your workspace. Enter your business URL or a short description — Railmail's AI analyzes it and prepares your project: email topics, audience segments, starter automations, API keys, domain records and default email templates.
+  </Step>
+</Steps>
+
+## 2. Set up your sending domain
+
+Before you send real email, connect a **sending domain** so messages are authenticated and land in the inbox.
+
+<Steps>
+  <Step title="Choose a domain">
+    In **Settings → Domain**, use your own custom domain (recommended) or start on a **system domain** (`your-workspace.railmail.com`) that carries Railmail branding.
+  </Step>
+  <Step title="Add DNS records">
+    Railmail shows the **SPF, DKIM and DMARC** records to add at your DNS provider. Copy each record's name and value, add them, then click **Verify DNS**.
+  </Step>
+  <Step title="Warm up">
+    New domains send under a gradually increasing daily limit (**warming**) to protect your reputation. This is automatic — just expect a lower daily cap at first.
+  </Step>
+</Steps>
+
+<Note>
+  You can explore the app and build drafts before this is done, but a **verified domain** is required for good deliverability. See [Sending domain](/en/guide/sending-domain) for the full walkthrough.
+</Note>
+
+## 3. Add subscribers
+
+Bring your audience into Railmail.
+
+<Steps>
+  <Step title="Add one, or import many">
+    In **Subscribers**, click **Add subscriber** for a single contact, or import a **CSV** and map its columns to fields.
+  </Step>
+  <Step title="Pick topics and consent">
+    Every subscriber must be added to at least one **topic**, with a consent source. Keep **double opt-in** enabled unless you have a specific reason not to — it protects your deliverability and keeps you compliant.
+  </Step>
+</Steps>
+
+See [Subscribers](/en/guide/subscribers) for import details, custom fields and consent management.
+
+## 4. Create a topic
+
+A **topic** is a subscription category your subscribers see in their preference center — for example *Product updates* or *Weekly newsletter*.
+
+<Steps>
+  <Step title="Add a topic">
+    In **Topics**, click **Add topic**. Give it a **name** (what the subscriber sees), a **description** of what they'll receive, and an expected frequency.
+  </Step>
+  <Step title="Choose opt-in">
+    Turn on **double opt-in** to require email confirmation before someone counts as subscribed. New consents then sit in **Pending confirmation** until confirmed.
+  </Step>
+</Steps>
+
+More in [Topics](/en/guide/topics).
+
+## 5. (Optional) Narrow your audience with a segment
+
+If you want to send to a *slice* of a topic rather than everyone, create a **segment**.
+
+- **Dynamic segments** update automatically from rules (e.g. *joined in the last 30 days*).
+- **Static segments** are lists you manage by hand.
+
+You can skip this for your first send. See [Segments](/en/guide/segments) when you're ready.
+
+## 6. Build and send your first campaign
+
+<Steps>
+  <Step title="Start a campaign">
+    In **Campaigns**, click **New campaign** and choose a mode: the **Editor** (Notion-style blocks, full control) or **AI Chat** (the assistant guides content creation).
+  </Step>
+  <Step title="Set the essentials">
+    In **Campaign Settings**, fill in the name, choose the **Topic** (required) and an optional **Segment**, then write the **subject** and **preview text**. The recipient count updates live as you choose your audience.
+  </Step>
+  <Step title="Preview and test">
+    Use **Live Preview** (desktop / tablet / mobile) and **Send test** to email a sample copy to yourself. Save the campaign first if prompted.
+  </Step>
+  <Step title="Pass the pre-send analysis">
+    When you choose **Send** or **Schedule**, Railmail runs a **Pre-Send Analysis**: deliverability checks (spam score, unsubscribe link, verified domain, recipient count and more) plus an AI review. **Critical issues block the send** and must be fixed; warnings let you continue with **Send anyway**.
+  </Step>
+  <Step title="Send or schedule">
+    Choose **Send now** for an immediate send, or **Schedule** to pick a date and time.
+  </Step>
+</Steps>
+
+Full detail in [Campaigns](/en/guide/campaigns).
+
+## 7. Read the report
+
+After sending, open the campaign's **report**. You'll see delivery and bounce metrics, engagement, negative signals (unsubscribes, complaints), a timeline, and an **AI report** summarizing what worked and what to improve.
+
+<Note>
+  Open and click tracking may not be connected yet in your project; when that's the case, the report says so and still shows delivery and bounce data. See [Reports](/en/guide/reports).
+</Note>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Automations" icon="bolt" href="/en/guide/automations">
+    Send emails automatically when someone subscribes, enters a segment, or on a schedule.
+  </Card>
+  <Card title="AI credits & plans" icon="coins" href="/en/guide/ai-credits">
+    Understand what consumes AI credits and how plans and limits work.
+  </Card>
+  <Card title="Team & roles" icon="users" href="/en/guide/team">
+    Invite teammates and manage their access.
+  </Card>
+  <Card title="API reference" icon="code" href="/en/api-reference/introduction">
+    Do everything above programmatically over the REST API.
+  </Card>
+</CardGroup>

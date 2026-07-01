@@ -1,0 +1,55 @@
+---
+title: "Topics"
+description: "The consent layer — topics define what a subscriber agrees to receive."
+---
+
+A **topic** is a subscription category your subscribers see and control in their [preference center](/en/guide/preference-center) — for example *Weekly newsletter*, *Product updates* or *Promotions*. Topics are the **consent layer**: they define **what** a subscriber agrees to receive. Every campaign is sent to a topic.
+
+## Create a topic
+
+In **Topics**, click **Add topic**:
+
+| Field | Notes |
+| --- | --- |
+| Name | Visible to the subscriber in the preference center (3–100 characters). |
+| Description | What the subscriber will receive (up to 500 characters). |
+| Expected frequency | For example, *1×/week*. |
+| Double opt-in | Toggle between **double opt-in** and **single opt-in**. |
+
+## Double opt-in
+
+With **double opt-in**, a subscriber must confirm before they count as subscribed:
+
+<Steps>
+  <Step title="Consent is requested">
+    When someone subscribes, Railmail sends a confirmation email. Their consent status is **Pending confirmation**.
+  </Step>
+  <Step title="They confirm">
+    After they click the link, the status becomes **Confirmed** and they start receiving that topic's email.
+  </Step>
+  <Step title="If they don't confirm">
+    You can **resend the confirmation**. A confirmation can also **expire** if left unconfirmed.
+  </Step>
+</Steps>
+
+Double opt-in protects your deliverability and keeps you compliant. Use single opt-in only when you already hold valid consent.
+
+## Topic properties
+
+Open a topic to manage:
+
+- **Status** — Active, Draft, Inactive or Archived.
+- **Priority** — Urgent, High, Medium, Low or No priority. Helps you order topics.
+- **Double opt-in** — on or off.
+- **Consent expiry** — whether consent expires after a period.
+- **Frequency** and **active subscribers**.
+
+Use the change dialogs to update priority, status or double opt-in at any time.
+
+## Topic actions
+
+From the topic list or detail view you can **Activate**, **Set as draft**, **Deactivate**, **Archive** or **Delete** a topic. The **Subscribers** tab shows everyone subscribed to that topic and their consent state.
+
+<Note>
+  Topics answer **what**; [segments](/en/guide/segments) answer **who**. A campaign sends to a topic, optionally narrowed by a segment.
+</Note>

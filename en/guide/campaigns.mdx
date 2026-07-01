@@ -1,0 +1,74 @@
+---
+title: "Campaigns"
+description: "Create, preview, analyze and send email campaigns."
+---
+
+A **campaign** is an email you send to a [topic](/en/guide/topics), optionally narrowed by a [segment](/en/guide/segments). The campaign list shows each campaign's topic, segment, recipients, status, schedule and engagement, with **All / Drafts / Scheduled** views.
+
+## Create a campaign
+
+Click **New campaign** and choose a build mode:
+
+| Mode | Best for |
+| --- | --- |
+| **Editor** | Full control with Notion-style blocks. Type `/` to insert blocks — text, headings, images, a **Button** (CTA with label, URL and color), a **Divider** and more. |
+| **AI Chat** | AI-guided creation. Pick a goal — **Newsletter, Product update, Promotion or Win-back** — and the assistant drafts content, subject lines and preview text. Consumes [AI credits](/en/guide/ai-credits) and needs a connection (offline switches to the Editor). |
+
+## Campaign settings
+
+The settings panel groups everything you configure:
+
+- **Basic information** — name and description.
+- **Audience** — the **Topic** (required, one or more) and an optional **Segment**. The recipient count updates live as you choose.
+- **Subject & preview** — the subject line and preview text.
+- **Email settings** — From domain, From name and Reply-to.
+- **A/B testing** and **Send schedule**.
+
+## Preview and test
+
+- **Live Preview** renders your email for **desktop, tablet and mobile**.
+- **Send test** emails a copy — with sample data filled in — to your own account inbox. Save the campaign first if prompted.
+
+## Pre-send analysis
+
+When you choose **Send** or **Schedule**, Railmail runs a **Pre-Send Analysis** before anything goes out. It saves a draft, runs deliverability checks, then adds an AI review and an overall score.
+
+Checks include: link validation, spam score and spam words, subject length, personalization, unsubscribe link, image-to-text ratio, **sender domain verified** (SPF/DKIM/DMARC), recipient count, **domain warming quota**, merge tags, plain-text version, content length and per-topic consent.
+
+Each check returns **Pass**, **Warning** or **Fail** with a severity:
+
+- **Critical issues block the send** — you must resolve them before continuing.
+- **Warnings** let you proceed with **Send anyway** / **Schedule anyway**.
+
+<Note>
+  The AI portion may be skipped if the score is too low, a critical check fails, or you're out of AI credits. The deliverability checks still run.
+</Note>
+
+## Schedule and send
+
+| Option | What it does |
+| --- | --- |
+| **Draft** | Save without sending. |
+| **Send now** | Send immediately after saving. |
+| **Schedule** | Send at a specific date and time. |
+
+## Campaign statuses
+
+| Status | Meaning |
+| --- | --- |
+| Draft | Not yet sent. |
+| Scheduled | Queued for a future time. |
+| Queuing / Sending | Being prepared and sent. |
+| Sent | Delivered to the queue successfully. |
+| Paused | Sending paused. |
+| Cancelled | Send cancelled. |
+| Failed | Could not be sent — open for details or try again. |
+| Archived | Retired from active views. |
+
+Other actions on a campaign: **Send now**, **Pause**, **Duplicate**, **Delete**, **View report** and **Edit**.
+
+<Warning>
+  For real sends you need a **verified sending domain** and at least one deliverable recipient. Domain warming can cap how many recipients you can reach per day. See [Sending domain](/en/guide/sending-domain).
+</Warning>
+
+After sending, open the campaign's [report](/en/guide/reports) to see how it performed.

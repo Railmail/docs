@@ -1,0 +1,74 @@
+---
+title: "Kampanie"
+description: "Twórz, podglądaj, analizuj i wysyłaj kampanie e-mail."
+---
+
+**Kampania** to e-mail wysyłany do [tematu](/pl/guide/topics), opcjonalnie zawężony [segmentem](/pl/guide/segments). Lista kampanii pokazuje dla każdej kampanii temat, segment, odbiorców, status, harmonogram i zaangażowanie, z widokami **Wszystkie / Robocze / Zaplanowane**.
+
+## Utwórz kampanię
+
+Kliknij **Nowa kampania** i wybierz tryb budowania:
+
+| Tryb | Najlepszy do |
+| --- | --- |
+| **Edytor** | Pełna kontrola z blokami w stylu Notion. Wpisz `/`, aby wstawić bloki — tekst, nagłówki, obrazy, **Przycisk** (CTA z etykietą, URL i kolorem), **Separator** i więcej. |
+| **Czat AI** | Tworzenie prowadzone przez AI. Wybierz cel — **Newsletter, Aktualizacja produktu, Promocja lub Win-back** — a asystent przygotuje treść, tematy wiadomości i tekst podglądu. Zużywa [kredyty AI](/pl/guide/ai-credits) i wymaga połączenia (offline przełącza na Edytor). |
+
+## Ustawienia kampanii
+
+Panel ustawień grupuje wszystko, co konfigurujesz:
+
+- **Informacje podstawowe** — nazwa i opis.
+- **Odbiorcy** — **Temat** (wymagany, jeden lub więcej) i opcjonalny **Segment**. Liczba odbiorców aktualizuje się na żywo w miarę wyboru.
+- **Temat i podgląd** — temat wiadomości i tekst podglądu.
+- **Ustawienia e-mail** — domena nadawcy, nazwa nadawcy i adres odpowiedzi.
+- **Testy A/B** i **Harmonogram wysyłki**.
+
+## Podgląd i test
+
+- **Podgląd na żywo** renderuje e-mail na **desktopie, tablecie i mobile**.
+- **Wyślij test** wysyła kopię — z uzupełnionymi danymi przykładowymi — na skrzynkę Twojego konta. Najpierw zapisz kampanię, jeśli pojawi się taki komunikat.
+
+## Analiza przedwysyłkowa
+
+Gdy wybierzesz **Wyślij** lub **Zaplanuj**, Railmail uruchamia **Analizę przedwysyłkową**, zanim cokolwiek wyjdzie. Zapisuje wersję roboczą, wykonuje sprawdzenia dostarczalności, a następnie dodaje przegląd AI i ocenę ogólną.
+
+Sprawdzenia obejmują: walidację linków, spam score i słowa spamowe, długość tematu, personalizację, link wypisu, stosunek obrazu do tekstu, **zweryfikowaną domenę nadawcy** (SPF/DKIM/DMARC), liczbę odbiorców, **limit warmingu domeny**, tagi personalizacji, wersję tekstową, długość treści oraz zgodę per temat.
+
+Każde sprawdzenie zwraca **Zaliczone**, **Ostrzeżenie** lub **Niezaliczone** z poziomem ważności:
+
+- **Problemy krytyczne blokują wysyłkę** — musisz je rozwiązać przed kontynuacją.
+- **Ostrzeżenia** pozwalają kontynuować przez **Wyślij mimo to** / **Zaplanuj mimo to**.
+
+<Note>
+  Część AI może zostać pominięta, jeśli wynik jest zbyt niski, krytyczne sprawdzenie zawiedzie lub zabraknie kredytów AI. Sprawdzenia dostarczalności i tak są wykonywane.
+</Note>
+
+## Harmonogram i wysyłka
+
+| Opcja | Działanie |
+| --- | --- |
+| **Wersja robocza** | Zapisz bez wysyłania. |
+| **Wyślij teraz** | Wyślij natychmiast po zapisaniu. |
+| **Zaplanuj** | Wyślij o określonej dacie i godzinie. |
+
+## Statusy kampanii
+
+| Status | Znaczenie |
+| --- | --- |
+| Robocza | Jeszcze nie wysłana. |
+| Zaplanowana | W kolejce na przyszły czas. |
+| W kolejce / Wysyłanie | Przygotowywana i wysyłana. |
+| Wysłana | Pomyślnie przekazana do kolejki. |
+| Wstrzymana | Wysyłka wstrzymana. |
+| Anulowana | Wysyłka anulowana. |
+| Nieudana | Nie mogła zostać wysłana — otwórz po szczegóły lub spróbuj ponownie. |
+| Zarchiwizowana | Wycofana z aktywnych widoków. |
+
+Inne akcje na kampanii: **Wyślij teraz**, **Wstrzymaj**, **Duplikuj**, **Usuń**, **Zobacz raport** i **Edytuj**.
+
+<Warning>
+  Do prawdziwych wysyłek potrzebujesz **zweryfikowanej domeny wysyłkowej** i co najmniej jednego dostarczalnego odbiorcy. Warming domeny może ograniczać, ilu odbiorców osiągniesz dziennie. Zobacz [Domena wysyłkowa](/pl/guide/sending-domain).
+</Warning>
+
+Po wysłaniu otwórz [raport](/pl/guide/reports) kampanii, aby zobaczyć jej wyniki.

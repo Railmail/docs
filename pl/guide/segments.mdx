@@ -1,0 +1,49 @@
+---
+title: "Segmenty"
+description: "Warstwa targetowania — segmenty definiują, kto otrzymuje kampanię."
+---
+
+**Segment** to grupa subskrybentów, których możesz zaadresować. Segmenty to **warstwa targetowania**: definiują, **kto** otrzymuje kampanię, podczas gdy [tematy](/pl/guide/topics) definiują **co**. Gdy wysyłasz kampanię, wybierasz temat i możesz go zawęzić segmentem.
+
+## Typy segmentów
+
+| Typ | Zachowanie |
+| --- | --- |
+| **Dynamiczny** | Członkostwo aktualizuje się automatycznie na podstawie zdefiniowanych reguł. |
+| **Statyczny** | Grupa zarządzana ręcznie — sam dodajesz i usuwasz członków. |
+
+Segmenty mogą być **Aktywne**, **Nieaktywne** lub **Zarchiwizowane**.
+
+## Utwórz segment
+
+W **Segmenty** utwórz nowy segment (przez **Edytor** lub **Czat AI**):
+
+1. Wybierz **typ** (dynamiczny lub statyczny).
+2. Nadaj **nazwę** (3–200 znaków) i opcjonalny opis.
+3. Dla segmentu dynamicznego zdefiniuj co najmniej jedną **regułę**.
+
+## Reguły (segmenty dynamiczne)
+
+Reguły to warunki, które automatycznie dodają pasujących subskrybentów.
+
+- Dodawaj **warunki** i łącz je logiką **AND / OR**.
+- Grupuj warunki, aby uzyskać bardziej złożoną logikę.
+- Użyj **Oszacuj rozmiar**, aby przed zapisaniem podejrzeć, ilu subskrybentów aktualnie pasuje.
+
+Zakładka **Reguły** w widoku szczegółów segmentu pozwala później doprecyzować te warunki. Reguły możesz budować na atrybutach subskrybenta i Twoich [polach niestandardowych](/pl/guide/custom-fields).
+
+## Członkowie (segmenty statyczne)
+
+Dla segmentu statycznego otwórz zakładkę **Członkowie**, aby **Dodać członków** lub **Usunąć członków**. Szukaj po e-mailu lub nazwie, filtruj po temacie i zaznaczaj wielu naraz. Najpierw zapisz segment, zanim zaczniesz zarządzać członkami.
+
+## Sugestie AI
+
+Railmail może zaproponować Ci segmenty w zakładce **Sugestie**. Sugestie wynikają z aktywności — na przykład zachowania **po kampanii** lub **wykrytego wzorca**. Każda sugestia pokazuje poziom pewności, szacowany rozmiar, uzasadnienie („dlaczego ten segment?") oraz proponowane reguły. Możesz:
+
+- **Zatwierdź** — utwórz segment zgodnie z sugestią.
+- **Dostosuj** — zmodyfikuj przed utworzeniem.
+- **Odrzuć** — pomiń.
+
+<Note>
+  Sugestie AI są sterowane ustawieniem **Automatyczne sugestie segmentów AI** w **Ustawienia → Projekt**, a ich generowanie zużywa [kredyty AI](/pl/guide/ai-credits).
+</Note>

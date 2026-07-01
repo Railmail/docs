@@ -1,0 +1,49 @@
+---
+title: "Segments"
+description: "The targeting layer — segments define who receives a campaign."
+---
+
+A **segment** is a group of subscribers you can target. Segments are the **targeting layer**: they define **who** receives a campaign, while [topics](/en/guide/topics) define **what**. When you send a campaign, you pick a topic and can narrow it with a segment.
+
+## Segment types
+
+| Type | Behavior |
+| --- | --- |
+| **Dynamic** | Membership updates automatically based on rules you define. |
+| **Static** | A group you manage by hand, adding and removing members yourself. |
+
+Segments can be **Active**, **Inactive** or **Archived**.
+
+## Create a segment
+
+In **Segments**, create a new segment (via the **Editor** or **AI Chat**):
+
+1. Choose the **type** (dynamic or static).
+2. Give it a **name** (3–200 characters) and an optional description.
+3. For a dynamic segment, define at least one **rule**.
+
+## Rules (dynamic segments)
+
+Rules are conditions that automatically add matching subscribers.
+
+- Add **conditions** and combine them with **AND / OR** logic.
+- Group conditions together for more complex logic.
+- Use **Evaluate size** to preview how many subscribers currently match before you save.
+
+The **Rules** tab on a segment's detail view lets you refine these conditions later. You can build rules on subscriber attributes and your [custom fields](/en/guide/custom-fields).
+
+## Members (static segments)
+
+For a static segment, open the **Members** tab to **Add members** or **Remove members**. Search by email or name, filter by topic, and select multiple at once. Save the segment first before managing members.
+
+## AI suggestions
+
+Railmail can suggest segments for you under the **Suggestions** tab. Suggestions come from activity — for example **post-campaign** behavior or a **detected pattern**. Each suggestion shows a confidence level, estimated size, a rationale ("why this segment?") and the proposed rules. You can:
+
+- **Approve** — create the segment as suggested.
+- **Adjust** — tweak it before creating.
+- **Dismiss** — discard it.
+
+<Note>
+  AI suggestions are controlled by the **Automatic AI segment suggestions** setting in **Settings → Project**, and generating them consumes [AI credits](/en/guide/ai-credits).
+</Note>

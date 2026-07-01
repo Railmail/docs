@@ -1,0 +1,63 @@
+---
+title: "Subskrybenci"
+description: "Zarządzaj bazą kontaktów z pełnym śledzeniem zgód."
+---
+
+**Subskrybenci** to osoby na Twoich listach. Railmail śledzi zgodę każdego subskrybenta per temat, więc zawsze wiesz, kto na co się zgodził.
+
+**Aktywny subskrybent** to osoba ze statusem *zapisany* w co najmniej jednym temacie, z ważną zgodą. Kontakty wypisane, odbite, zduplikowane i zarchiwizowane nie liczą się do limitu subskrybentów w Twoim planie.
+
+## Dodaj pojedynczego subskrybenta
+
+W **Subskrybenci** kliknij **Dodaj subskrybenta** i wypełnij:
+
+| Pole | Uwagi |
+| --- | --- |
+| E-mail | Wymagane. |
+| Imię / Nazwisko | Opcjonalne. |
+| Telefon | Opcjonalne. |
+| Tematy | **Wymagane** — wybierz co najmniej jeden temat, do którego go zapisujesz. |
+| Źródło zgody | Jak uzyskano zgodę: Ręcznie, Import, API lub Formularz. |
+| Pola niestandardowe | Dowolne atrybuty zdefiniowane w projekcie. |
+
+Jeśli wybrany temat korzysta z double opt-in, subskrybent otrzyma **e-mail potwierdzający** i pozostanie w stanie *Oczekuje potwierdzenia*, dopóki nie potwierdzi.
+
+## Zaimportuj wielu subskrybentów
+
+Użyj importu, aby wprowadzić istniejącą listę.
+
+<Steps>
+  <Step title="Wgraj plik">
+    Wgraj plik **CSV** ze swoimi kontaktami.
+  </Step>
+  <Step title="Zmapuj kolumny">
+    Dopasuj każdą kolumnę w pliku do pola Railmaila (e-mail, imię, telefon, pola niestandardowe).
+  </Step>
+  <Step title="Wybierz obsługę zgód">
+    Zostaw włączony **double opt-in** (zalecane). Włącz **Waliduj zgody przy imporcie**, aby sprawdzać zgodę w trakcie wczytywania rekordów. Single opt-in pokazuje ostrzeżenie prawne — używaj go tylko wtedy, gdy już posiadasz ważną zgodę.
+  </Step>
+</Steps>
+
+W dowolnym momencie możesz też **wyeksportować** subskrybentów.
+
+## Statusy subskrybenta
+
+| Status | Znaczenie |
+| --- | --- |
+| Zapisany | Ma ważną zgodę na co najmniej jeden temat. |
+| Wypisany | Zrezygnował ze wszystkich tematów. |
+| Odbity | E-mail nie mógł zostać dostarczony. |
+| Skarga | Oznaczył Twój e-mail jako spam. |
+| Oczekujący | Czeka na potwierdzenie double opt-in. |
+| Wykluczony | Na liście wykluczeń — nie może otrzymywać żadnej poczty. |
+
+## Szczegóły subskrybenta
+
+Otwórz subskrybenta, aby zobaczyć **Właściwości** (status, e-mail, źródło, double opt-in, imię, daty zapisu/wypisu, utworzenia/aktualizacji) oraz dwie zakładki:
+
+- **Zgody** — nadawaj, cofaj lub ponownie wysyłaj potwierdzenie dla każdego tematu. Zobacz [Tematy](/pl/guide/topics), jak działa zgoda.
+- **Segmenty** — do jakich segmentów należy subskrybent.
+
+<Tip>
+  Rozszerz profile subskrybentów własnymi atrybutami za pomocą [pól niestandardowych](/pl/guide/custom-fields) — a następnie używaj ich w segmentach, kampaniach i automatyzacjach.
+</Tip>

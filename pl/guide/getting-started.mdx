@@ -1,0 +1,131 @@
+---
+title: "Pierwsze kroki"
+description: "Od rejestracji do wysłania pierwszej kampanii — pełna ścieżka przez Railmail."
+---
+
+Ten przewodnik prowadzi Cię przez Railmail od początku do końca: od założenia konta po wysłanie pierwszej kampanii i odczytanie jej raportu. Każdy krok linkuje do szczegółowego przewodnika, gdy potrzebujesz więcej detali.
+
+Railmail opiera się na trzech pojęciach:
+
+- **Tematy** to *warstwa zgody* — definiują, **co** subskrybent zgadza się otrzymywać.
+- **Segmenty** to *warstwa targetowania* — definiują, **kto** otrzymuje kampanię.
+- **Kampanie** łączą jedno z drugim: wysyłasz treść do **tematu**, opcjonalnie zawężonego **segmentem**.
+
+Zapamiętaj to, a reszta ułoży się sama.
+
+## 1. Załóż konto i przestrzeń roboczą
+
+<Steps>
+  <Step title="Zarejestruj się">
+    Zarejestruj się e-mailem i hasłem lub użyj **Kontynuuj z Google**. Nowe konta startują z **14-dniowym darmowym okresem próbnym**. Zweryfikuj e-mail kodem, który wyśle Railmail.
+  </Step>
+  <Step title="Przejdź onboarding">
+    Kreator onboardingu konfiguruje przestrzeń roboczą. Podaj adres swojej strony lub krótki opis biznesu — AI Railmaila go analizuje i przygotowuje projekt: tematy e-mail, segmenty odbiorców, startowe automatyzacje, klucze API, rekordy domeny i domyślne szablony wiadomości.
+  </Step>
+</Steps>
+
+## 2. Skonfiguruj domenę wysyłkową
+
+Zanim wyślesz prawdziwą pocztę, podłącz **domenę wysyłkową**, aby wiadomości były uwierzytelnione i trafiały do skrzynki odbiorczej.
+
+<Steps>
+  <Step title="Wybierz domenę">
+    W **Ustawienia → Domena** użyj własnej domeny (zalecane) lub zacznij od **domeny systemowej** (`twoja-przestrzen.railmail.com`) z brandingiem Railmail.
+  </Step>
+  <Step title="Dodaj rekordy DNS">
+    Railmail pokaże rekordy **SPF, DKIM i DMARC** do dodania u dostawcy DNS. Skopiuj nazwę i wartość każdego rekordu, dodaj je, a następnie kliknij **Zweryfikuj DNS**.
+  </Step>
+  <Step title="Rozgrzej domenę">
+    Nowe domeny wysyłają pod stopniowo rosnącym dziennym limitem (**warming**), aby chronić reputację. Dzieje się to automatycznie — na początku spodziewaj się niższego dziennego limitu.
+  </Step>
+</Steps>
+
+<Note>
+  Możesz przeglądać aplikację i budować wersje robocze zanim to zrobisz, ale **zweryfikowana domena** jest wymagana dla dobrej dostarczalności. Zobacz [Domena wysyłkowa](/pl/guide/sending-domain).
+</Note>
+
+## 3. Dodaj subskrybentów
+
+Wprowadź swoich odbiorców do Railmaila.
+
+<Steps>
+  <Step title="Dodaj jednego lub zaimportuj wielu">
+    W **Subskrybenci** kliknij **Dodaj subskrybenta** dla pojedynczego kontaktu lub zaimportuj plik **CSV** i zmapuj jego kolumny na pola.
+  </Step>
+  <Step title="Wybierz tematy i zgodę">
+    Każdy subskrybent musi zostać dodany do co najmniej jednego **tematu**, ze źródłem zgody. Zostaw włączony **double opt-in**, chyba że masz konkretny powód, by tego nie robić — chroni dostarczalność i utrzymuje zgodność z prawem.
+  </Step>
+</Steps>
+
+Zobacz [Subskrybenci](/pl/guide/subscribers) — szczegóły importu, pola niestandardowe i zarządzanie zgodami.
+
+## 4. Utwórz temat
+
+**Temat** to kategoria subskrypcji, którą subskrybent widzi w centrum preferencji — na przykład *Aktualizacje produktu* lub *Cotygodniowy newsletter*.
+
+<Steps>
+  <Step title="Dodaj temat">
+    W **Tematy** kliknij **Dodaj temat**. Nadaj mu **nazwę** (widoczną dla subskrybenta), **opis** tego, co będzie otrzymywać, oraz oczekiwaną częstotliwość.
+  </Step>
+  <Step title="Wybierz typ zgody">
+    Włącz **double opt-in**, aby wymagać potwierdzenia e-mail, zanim ktoś zostanie policzony jako zapisany. Nowe zgody czekają wtedy w stanie **Oczekuje potwierdzenia**, dopóki nie zostaną potwierdzone.
+  </Step>
+</Steps>
+
+Więcej w [Tematy](/pl/guide/topics).
+
+## 5. (Opcjonalnie) Zawęź odbiorców segmentem
+
+Jeśli chcesz wysłać do *wycinka* tematu, a nie do wszystkich, utwórz **segment**.
+
+- **Segmenty dynamiczne** aktualizują się automatycznie na podstawie reguł (np. *dołączyli w ostatnich 30 dniach*).
+- **Segmenty statyczne** to listy, którymi zarządzasz ręcznie.
+
+Możesz to pominąć przy pierwszej wysyłce. Zobacz [Segmenty](/pl/guide/segments), gdy będziesz gotów.
+
+## 6. Zbuduj i wyślij pierwszą kampanię
+
+<Steps>
+  <Step title="Rozpocznij kampanię">
+    W **Kampanie** kliknij **Nowa kampania** i wybierz tryb: **Edytor** (bloki w stylu Notion, pełna kontrola) lub **Czat AI** (asystent prowadzi tworzenie treści).
+  </Step>
+  <Step title="Ustaw podstawy">
+    W **Ustawieniach kampanii** wpisz nazwę, wybierz **Temat** (wymagany) i opcjonalny **Segment**, a następnie napisz **temat wiadomości** i **tekst podglądu**. Liczba odbiorców aktualizuje się na żywo w miarę wyboru odbiorców.
+  </Step>
+  <Step title="Podejrzyj i przetestuj">
+    Użyj **Podglądu na żywo** (desktop / tablet / mobile) i **Wyślij test**, aby wysłać próbną kopię do siebie. Najpierw zapisz kampanię, jeśli pojawi się taki komunikat.
+  </Step>
+  <Step title="Przejdź analizę przedwysyłkową">
+    Gdy wybierzesz **Wyślij** lub **Zaplanuj**, Railmail uruchamia **Analizę przedwysyłkową**: sprawdzenia dostarczalności (spam score, link wypisu, zweryfikowana domena, liczba odbiorców i więcej) oraz przegląd AI. **Problemy krytyczne blokują wysyłkę** i muszą zostać naprawione; ostrzeżenia pozwalają kontynuować przez **Wyślij mimo to**.
+  </Step>
+  <Step title="Wyślij lub zaplanuj">
+    Wybierz **Wyślij teraz** dla natychmiastowej wysyłki lub **Zaplanuj**, aby wybrać datę i godzinę.
+  </Step>
+</Steps>
+
+Pełne szczegóły w [Kampanie](/pl/guide/campaigns).
+
+## 7. Odczytaj raport
+
+Po wysłaniu otwórz **raport** kampanii. Zobaczysz metryki dostarczalności i odbić, zaangażowanie, sygnały negatywne (wypisy, skargi), oś czasu oraz **raport AI** podsumowujący, co zadziałało i co poprawić.
+
+<Note>
+  Śledzenie otwarć i kliknięć może nie być jeszcze podłączone w Twoim projekcie; wtedy raport to sygnalizuje i nadal pokazuje dane o dostarczeniu i odbiciach. Zobacz [Raporty](/pl/guide/reports).
+</Note>
+
+## Co dalej
+
+<CardGroup cols={2}>
+  <Card title="Automatyzacje" icon="bolt" href="/pl/guide/automations">
+    Wysyłaj e-maile automatycznie, gdy ktoś się zapisze, wejdzie do segmentu lub według harmonogramu.
+  </Card>
+  <Card title="Kredyty AI i plany" icon="coins" href="/pl/guide/ai-credits">
+    Zrozum, co zużywa kredyty AI oraz jak działają plany i limity.
+  </Card>
+  <Card title="Zespół i role" icon="users" href="/pl/guide/team">
+    Zapraszaj współpracowników i zarządzaj ich dostępem.
+  </Card>
+  <Card title="Dokumentacja API" icon="code" href="/pl/api-reference/introduction">
+    Rób wszystko powyżej programistycznie przez REST API.
+  </Card>
+</CardGroup>

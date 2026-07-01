@@ -22,6 +22,24 @@
                   "en/index",
                   "en/quickstart"
                 ]
+              },
+              {
+                "group": "User Guide",
+                "pages": [
+                  "en/guide/getting-started",
+                  "en/guide/subscribers",
+                  "en/guide/topics",
+                  "en/guide/segments",
+                  "en/guide/custom-fields",
+                  "en/guide/campaigns",
+                  "en/guide/automations",
+                  "en/guide/reports",
+                  "en/guide/agents",
+                  "en/guide/sending-domain",
+                  "en/guide/preference-center",
+                  "en/guide/team",
+                  "en/guide/ai-credits"
+                ]
               }
             ]
           },
@@ -56,6 +74,24 @@
                 "pages": [
                   "pl/index",
                   "pl/quickstart"
+                ]
+              },
+              {
+                "group": "Przewodnik użytkownika",
+                "pages": [
+                  "pl/guide/getting-started",
+                  "pl/guide/subscribers",
+                  "pl/guide/topics",
+                  "pl/guide/segments",
+                  "pl/guide/custom-fields",
+                  "pl/guide/campaigns",
+                  "pl/guide/automations",
+                  "pl/guide/reports",
+                  "pl/guide/agents",
+                  "pl/guide/sending-domain",
+                  "pl/guide/preference-center",
+                  "pl/guide/team",
+                  "pl/guide/ai-credits"
                 ]
               }
             ]

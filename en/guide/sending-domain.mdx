@@ -1,0 +1,52 @@
+---
+title: "Sending domain"
+description: "Authenticate your domain with DNS so your email lands in the inbox."
+---
+
+Your **sending domain** is the domain your email is sent from. Authenticating it with DNS records tells mailbox providers your mail is legitimate, which is essential for deliverability. Configure it in **Settings → Domain**.
+
+## Choose a domain
+
+| Option | When to use |
+| --- | --- |
+| **Custom domain** | Recommended for production. Send from your own domain (e.g. `mail.yourcompany.com`). |
+| **System domain** | Get started quickly on `your-workspace.railmail.com`. Carries Railmail branding. |
+
+## Verify with DNS
+
+<Steps>
+  <Step title="Copy the records">
+    Railmail shows the **SPF, DKIM and DMARC** records to add. For each, note its **name**, **value** and **TTL**.
+  </Step>
+  <Step title="Add them at your DNS provider">
+    Create the records in your domain's DNS settings. Changes can take some time to propagate.
+  </Step>
+  <Step title="Verify">
+    Back in Railmail, click **Verify DNS**. Once the records are found, the domain becomes verified.
+  </Step>
+</Steps>
+
+Railmail also shows a **domain health / reputation score** so you can monitor how mailbox providers view your domain.
+
+## Warming
+
+New domains are **warmed** — they send under a daily quota that increases over time, moving from an initial phase toward a mature one. This protects your sender reputation. You can monitor the daily limit, bounce rate and complaint rate, and **pause or resume** warming.
+
+<Warning>
+  The warming quota can cap how many recipients a campaign reaches per day. If a send is limited, that's expected during warming.
+</Warning>
+
+## Domain statuses
+
+| Status | Meaning |
+| --- | --- |
+| Active | Verified and sending. |
+| Pending verification | Waiting for DNS records to be found. |
+| Verification failed | Records not found or incorrect. |
+| Degraded | Reputation or configuration issue. |
+| Suspended / Blocked | Sending stopped due to a serious issue. |
+| Expired | Verification needs to be renewed. |
+
+## Email footer
+
+Under **Settings → Email**, configure the compliant footer added to every email: company name and address, and the wording for the unsubscribe and preference-center links (always included). You can add custom footer text, and remove the *Powered by Railmail* badge on paid plans.

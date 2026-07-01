@@ -1,0 +1,55 @@
+---
+title: "Automatyzacje"
+description: "Wysyłaj e-maile automatycznie na podstawie wyzwalaczy i reguł."
+---
+
+**Automatyzacje** wysyłają e-maile automatycznie w reakcji na zdarzenia — na przykład wiadomość powitalną, gdy ktoś się zapisze. Budujesz przepływ jako wizualny graf węzłów, aktywujesz go, a Railmail uruchamia go dla każdego subskrybenta, który do niego wejdzie.
+
+## Utwórz automatyzację
+
+Wybierz sposób startu:
+
+| Sposób | Opis |
+| --- | --- |
+| **Edytor** | Kanwa typu przeciągnij i upuść. Dodawaj węzły i łącz je, aby zaprojektować przepływ. |
+| **Szablony** | Zacznij od sprawdzonego przepływu: Sekwencja powitalna, Onboarding (SaaS), Win-back, Urodziny/Rocznica lub Ponowne zaangażowanie. |
+| **AI Flow Builder** | Opisz cel na czacie, a AI wygeneruje przepływ. |
+
+<Note>
+  Wbudowany tryb **Czatu AI** w builderze może być jeszcze wdrażany („Tryb czatu AI wkrótce"). Użyj Edytora lub szablonu, jeśli nie jest jeszcze dostępny w Twoim projekcie.
+</Note>
+
+## Wyzwalacze
+
+Wyzwalacz to zdarzenie uruchamiające przepływ dla subskrybenta:
+
+- **Subskrybent dołącza do listy**
+- **Wchodzi do segmentu**
+- **Opuszcza segment**
+- **Zdarzenie niestandardowe**
+- **Ręcznie**
+
+## Węzły
+
+Zbuduj przepływ z tych typów węzłów:
+
+| Węzeł | Przeznaczenie |
+| --- | --- |
+| Wyzwalacz | Punkt wejścia. |
+| E-mail | Wyślij e-mail. |
+| Opóźnienie | Odczekaj określony czas. |
+| Warunek | Rozgałęzienie na podstawie reguły. |
+| Podział A/B | Losowy podział ścieżki do testów. |
+| Cel | Oznacz konwersję. |
+| Webhook | Wywołaj zewnętrzny URL. |
+| Akcja tematu / Akcja segmentu | Zapisz/wypisz lub dodaj/usuń z segmentu. |
+
+## Aktywacja i zarządzanie
+
+Edytuj węzły na kanwie (dodawaj, usuwaj lub **Edytuj z AI**); zmiany zapisują się automatycznie. Gdy przepływ jest gotowy, **Aktywuj** go; **Wstrzymaj**, aby zatrzymać nowe wejścia. Automatyzacje mogą być **Aktywne**, **Wstrzymane**, **Robocze** lub **Zarchiwizowane**.
+
+Widok **Przebiegi** pokazuje uruchomienia automatyzacji — kto wszedł do przepływu oraz metryki, takie jak subskrybenci w przepływie i współczynnik konwersji.
+
+<Tip>
+  Wygenerowanie przepływu przez AI zużywa [kredyty AI](/pl/guide/ai-credits) (na przykład *Wygeneruj przepływ (5 kredytów)*).
+</Tip>
