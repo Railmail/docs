@@ -1,0 +1,68 @@
+---
+title: "Wprowadzenie"
+description: "REST API do programistycznego zarządzania platformą email marketingu Railmail."
+---
+
+Railmail Public API pozwala programistycznie zarządzać subskrybentami, tematami, zgodami, kampaniami, segmentami, automatyzacjami i innymi zasobami. To REST API, które komunikuje się w formacie JSON, używa standardowych metod HTTP i zwraca konwencjonalne kody statusu.
+
+## Adres bazowy
+
+Wszystkie endpointy są serwowane spod jednego adresu bazowego:
+
+```
+https://api.railmail.app
+```
+
+Każda ścieżka w tej dokumentacji jest względna wobec tego adresu i poprzedzona prefiksem `/api/v1`. Na przykład listowanie subskrybentów to `GET https://api.railmail.app/api/v1/subscribers`.
+
+## Uwierzytelnianie w jednej linii
+
+Każde zapytanie musi zawierać klucz API przypisany do projektu w nagłówku `X-API-Key`:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "X-API-Key: rm_live_twoj_klucz"
+```
+
+Zobacz [Uwierzytelnianie](/pl/api-reference/authentication), aby poznać formaty kluczy, zakresy oraz alternatywę `Authorization: Bearer`.
+
+## Izolacja projektu
+
+Klucz odpowiada dokładnie jednemu **projektowi**. Wszystkie odczyty i zapisy są automatycznie izolowane do tego projektu i jego tenanta — klucz nigdy nie odczyta ani nie zmodyfikuje danych innego projektu. Nie przekazujesz identyfikatora projektu ani tenanta; określa je klucz.
+
+## Konwencje
+
+<CardGroup cols={2}>
+  <Card title="Wszędzie JSON" icon="brackets-curly">
+    Treść zapytań i odpowiedzi to `application/json`. Błędy używają `application/problem+json` ([RFC 7807](/pl/api-reference/errors)).
+  </Card>
+  <Card title="Standardowe metody" icon="arrows-turn-right">
+    `GET` odczytuje, `POST` tworzy, `PATCH` aktualizuje, `DELETE` usuwa. Metody działają zgodnie z oczekiwaniami.
+  </Card>
+  <Card title="Klucze z zakresami" icon="key">
+    Każda operacja wymaga określonego zakresu, podanego w jej opisie. Brak zakresu zwraca `403`.
+  </Card>
+  <Card title="Limity zapytań" icon="gauge-high">
+    60 zapytań na minutę na klucz. Zobacz [Limity zapytań](/pl/api-reference/rate-limits).
+  </Card>
+</CardGroup>
+
+## Typowy przepływ: dodaj użytkowników do swoich tematów
+
+Częsta pierwsza integracja — zapisz użytkowników do tematu:
+
+<Steps>
+  <Step title="Sprawdź klucze tematów">
+    Wywołaj `GET /api/v1/topics`, aby wylistować tematy w projekcie i odczytać ich wartości `topicKey`.
+  </Step>
+  <Step title="Utwórz i zapisz w jednym wywołaniu">
+    Wywołaj `POST /api/v1/subscribers` z `topicKeys` + `consent`, aby utworzyć subskrybenta i od razu go zapisać — albo `POST /api/v1/subscribers/{email}/consents`, aby zapisać istniejącego subskrybenta.
+  </Step>
+  <Step title="Obsłuż double opt-in">
+    Jeśli temat korzysta z double opt-in, zgoda jest tworzona jako `PENDING_CONFIRMATION`. Subskrybent musi ją potwierdzić przez otrzymaną wiadomość, zanim zostanie policzony jako zapisany.
+  </Step>
+</Steps>
+
+## Testuj endpointy
+
+Każda strona endpointu w tej dokumentacji zawiera interaktywny playground. Wprowadź klucz API raz i wysyłaj prawdziwe zapytania wprost z dokumentacji.

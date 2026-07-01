@@ -1,0 +1,1985 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Railmail Public API",
+    "version": "v1",
+    "description": "REST API for managing the Railmail email marketing platform programmatically.\n\n## Authentication\nEvery request must carry a project-scoped API key, either in the `X-API-Key` header or as `Authorization: Bearer rm_...`. Keys have the format `rm_(live|test)_<random>`. A key resolves to exactly one project; all reads and writes are automatically isolated to that project and its tenant. A key cannot read or modify another project's data.\n\n## Scopes\nEvery key carries a set of scopes. Each operation requires a specific scope, documented in that operation's description (for example `Requires scope: subscribers:write`). A request whose key lacks the required scope returns `403`.\n\nThe full scope taxonomy: `subscribers:read|write`, `topics:read|write`, `segments:read|write`, `campaigns:read|write`, `automations:read|write`, `custom_fields:read|write`, `sending_domains:read|write`, `consents:manage`, `suppressions:manage`, `reports:read`, `billing:read`, `credits:read`.\n\n## Rate limiting\nRequests are limited to 60 per minute per key. The response carries `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. When exceeded, the API returns `429` with a `Retry-After` header.\n\n## Errors\nAll errors use RFC 7807 `application/problem+json` with `type`, `title`, `status`, `detail`, `instance`, `timestamp` and (for validation) `errors`.\n\n## Canonical flow: add your users to your topics\n1. `GET /topics` to discover topic keys.\n2. `POST /subscribers` with `topicKeys` + `consent` to create a subscriber and subscribe in one call, OR `POST /subscribers/{email}/consents` to subscribe an existing subscriber.\nIf a topic uses double opt-in, the consent is created `PENDING_CONFIRMATION` and the subscriber must confirm via the email they receive before they are subscribed.",
+    "contact": {
+      "name": "Railmail",
+      "url": "https://railmail.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.railmail.app",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    { "name": "Subscribers", "description": "Manage subscribers within the API key's project" },
+    { "name": "Topics", "description": "Manage subscription topics in the project" },
+    { "name": "Consents", "description": "Grant, read and revoke per-topic consent for a subscriber" },
+    { "name": "Suppressions", "description": "Manage the project suppression list" },
+    { "name": "Campaigns", "description": "Create, manage, schedule and send email campaigns" },
+    { "name": "Segments", "description": "Create, manage and populate subscriber segments" },
+    { "name": "Custom Fields", "description": "Define and manage subscriber custom field definitions" },
+    { "name": "Automations", "description": "Create, manage and control email automation workflows" },
+    { "name": "Sending Domain", "description": "Manage the project's custom sending domain and DNS verification" },
+    { "name": "Campaign Reports", "description": "Read campaign statistics, AI report, timeline and CSV export" },
+    { "name": "Billing", "description": "Read subscription, plans, invoices and usage for the account" },
+    { "name": "AI Credits", "description": "Read AI credit balance and transaction history for the account" },
+    { "name": "Project", "description": "Read the project the API key is scoped to" }
+  ],
+  "paths": {
+    "/api/v1/subscribers": {
+      "post": {
+        "tags": ["Subscribers"],
+        "summary": "Create a subscriber",
+        "description": "Creates a subscriber in the key's project and subscribes them to the given topics in a single call. If a topic uses double opt-in, the resulting consent is `PENDING_CONFIRMATION`. Requires scope: `subscribers:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createSubscriber",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateSubscriberRequest" },
+              "examples": {
+                "addUserToTopics": {
+                  "summary": "Add a customer's user to topics with consent",
+                  "value": {
+                    "email": "jane@example.com",
+                    "firstName": "Jane",
+                    "lastName": "Doe",
+                    "topicKeys": ["APIT-1", "APIT-2"],
+                    "consent": {
+                      "source": "checkout-form",
+                      "sourceUrl": "https://shop.example.com/checkout",
+                      "ipAddress": "203.0.113.10",
+                      "userAgent": "Mozilla/5.0",
+                      "consentText": "I agree to receive product updates",
+                      "formVersion": "v3"
+                    },
+                    "customFields": { "plan": "pro" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subscriber created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubscriberResponse" },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "subscriberKey": "SUB-1A2B",
+                      "email": "jane@example.com",
+                      "firstName": "Jane",
+                      "lastName": "Doe",
+                      "phone": null,
+                      "status": "ACTIVE",
+                      "source": "API",
+                      "createdAt": "2026-06-24T10:15:00Z",
+                      "updatedAt": "2026-06-24T10:15:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "get": {
+        "tags": ["Subscribers"],
+        "summary": "List subscribers",
+        "description": "Lists subscribers in the project, newest first. Requires scope: `subscribers:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listSubscribers",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated subscribers",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedSubscriberResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}": {
+      "parameters": [{ "$ref": "#/components/parameters/EmailPath" }],
+      "get": {
+        "tags": ["Subscribers"],
+        "summary": "Get a subscriber by email",
+        "description": "Requires scope: `subscribers:read`. Tenancy: scoped to the API key's project; an email from another project returns 404.",
+        "operationId": "getSubscriber",
+        "responses": {
+          "200": {
+            "description": "Subscriber",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SubscriberResponse" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Subscribers"],
+        "summary": "Update a subscriber",
+        "description": "Updates name, phone and custom fields. Requires scope: `subscribers:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateSubscriber",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateSubscriberRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated subscriber",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SubscriberResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Subscribers"],
+        "summary": "Delete a subscriber",
+        "description": "Requires scope: `subscribers:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "deleteSubscriber",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/topics": {
+      "get": {
+        "tags": ["Topics"],
+        "summary": "List topics",
+        "description": "Lists subscription topics in the project. Requires scope: `topics:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listTopics",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated topics",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedTopicResponse" },
+                "examples": {
+                  "discoverTopics": {
+                    "summary": "Discover topic keys before subscribing users",
+                    "value": {
+                      "data": [
+                        { "topicKey": "APIT-1", "name": "Newsletter", "description": "Weekly news", "status": "ACTIVE", "doubleOptInEnabled": true, "subscriberCount": 1200, "activeSubscriberCount": 1180, "createdAt": "2026-06-01T09:00:00Z" }
+                      ],
+                      "pagination": { "page": 0, "size": 20, "totalElements": 1, "totalPages": 1, "hasNext": false, "hasPrevious": false }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Topics"],
+        "summary": "Create a topic",
+        "description": "Requires scope: `topics:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createTopic",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateTopicRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "Topic created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TopicResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/topics/{topicKey}": {
+      "parameters": [{ "$ref": "#/components/parameters/TopicKeyPath" }],
+      "get": {
+        "tags": ["Topics"],
+        "summary": "Get a topic by key",
+        "description": "Requires scope: `topics:read`. Tenancy: scoped to the API key's project; a key from another project returns 404.",
+        "operationId": "getTopic",
+        "responses": {
+          "200": { "description": "Topic", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TopicResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Topics"],
+        "summary": "Update a topic",
+        "description": "Requires scope: `topics:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateTopic",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateTopicRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated topic", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TopicResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Topics"],
+        "summary": "Delete a topic",
+        "description": "Requires scope: `topics:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "deleteTopic",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}/consents": {
+      "parameters": [{ "$ref": "#/components/parameters/EmailPath" }],
+      "post": {
+        "tags": ["Consents"],
+        "summary": "Grant consent for a topic",
+        "description": "Subscribes an existing subscriber to a topic. If the topic uses double opt-in, the consent is created `PENDING_CONFIRMATION` (`requiresConfirmation: true`) and the subscriber must confirm via email before they are subscribed. Requires scope: `consents:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "grantConsent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GrantConsentRequest" },
+              "examples": {
+                "subscribeExisting": {
+                  "summary": "Add an existing subscriber to a topic",
+                  "value": {
+                    "topicKey": "APIT-1",
+                    "source": "preference-center",
+                    "ipAddress": "203.0.113.10",
+                    "userAgent": "Mozilla/5.0",
+                    "sourceUrl": "https://shop.example.com/prefs",
+                    "consentText": "I agree to receive the newsletter",
+                    "formVersion": "v3"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consent granted (or pending confirmation for double opt-in topics)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ConsentResponse" },
+                "examples": {
+                  "pendingDoubleOptIn": {
+                    "summary": "Topic requires confirmation",
+                    "value": { "topicKey": "APIT-1", "status": "PENDING_CONFIRMATION", "requiresConfirmation": true, "grantedAt": "2026-06-24T10:20:00Z", "confirmedAt": null, "tokenExpiresAt": "2026-06-26T10:20:00Z" }
+                  },
+                  "subscribedDirectly": {
+                    "summary": "Single opt-in topic",
+                    "value": { "topicKey": "APIT-2", "status": "SUBSCRIBED", "requiresConfirmation": false, "grantedAt": "2026-06-24T10:20:00Z", "confirmedAt": "2026-06-24T10:20:00Z", "tokenExpiresAt": null }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "get": {
+        "tags": ["Consents"],
+        "summary": "List a subscriber's consents",
+        "description": "Returns per-topic consent status and whether the subscriber is globally suppressed. Requires scope: `consents:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "getConsents",
+        "responses": {
+          "200": {
+            "description": "Consent preferences",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ConsentPreferencesResponse" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}/consents/{topicKey}": {
+      "parameters": [
+        { "$ref": "#/components/parameters/EmailPath" },
+        { "$ref": "#/components/parameters/TopicKeyPath" }
+      ],
+      "delete": {
+        "tags": ["Consents"],
+        "summary": "Revoke consent for a topic",
+        "description": "Unsubscribes the subscriber from a single topic (not a global unsubscribe). Requires scope: `consents:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "revokeConsent",
+        "responses": {
+          "204": { "description": "Consent revoked" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/suppressions": {
+      "post": {
+        "tags": ["Suppressions"],
+        "summary": "Add an email to the suppression list",
+        "description": "Suppresses an email so it can no longer receive any mail. Requires scope: `suppressions:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "addSuppression",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateSuppressionRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "Suppression added", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuppressionResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/suppressions/{email}": {
+      "parameters": [{ "$ref": "#/components/parameters/EmailPath" }],
+      "get": {
+        "tags": ["Suppressions"],
+        "summary": "Check whether an email is suppressed",
+        "description": "Requires scope: `suppressions:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "checkSuppression",
+        "responses": {
+          "200": { "description": "Suppression status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuppressionResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Suppressions"],
+        "summary": "Remove an email from the suppression list",
+        "description": "Removing a global unsubscribe is irreversible-sensitive, so it requires the confirmation header `X-Confirm-Unsuppress: true`. Requires scope: `suppressions:manage`. Tenancy: scoped to the API key's project.",
+        "operationId": "removeSuppression",
+        "parameters": [
+          {
+            "name": "X-Confirm-Unsuppress",
+            "in": "header",
+            "required": true,
+            "description": "Must be the literal string `true` to confirm the removal.",
+            "schema": { "type": "string", "enum": ["true"] }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Suppression removed" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns": {
+      "get": {
+        "tags": ["Campaigns"],
+        "summary": "List campaigns",
+        "description": "Lists campaigns in the project, newest first. Requires scope: `campaigns:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listCampaigns",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated campaigns", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedCampaignResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Campaigns"],
+        "summary": "Create a campaign",
+        "description": "Creates a draft campaign. Requires scope: `campaigns:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createCampaign",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCampaignRequest" },
+              "examples": {
+                "draft": {
+                  "value": {
+                    "name": "June Newsletter",
+                    "subject": "Your June update",
+                    "previewText": "What's new this month",
+                    "contentJson": "{\"blocks\":[]}",
+                    "fromEmail": "news@example.com",
+                    "fromName": "Example",
+                    "topicIds": ["7b9c1f2e-2a1d-4d8a-9b1f-7e6c5d4b3a2f"],
+                    "segmentIds": [],
+                    "sendStrategy": "DRAFT"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Campaign created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "get": {
+        "tags": ["Campaigns"],
+        "summary": "Get a campaign by key",
+        "description": "Requires scope: `campaigns:read`. Tenancy: scoped to the API key's project; a key from another project returns 404.",
+        "operationId": "getCampaign",
+        "responses": {
+          "200": { "description": "Campaign", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Campaigns"],
+        "summary": "Update a campaign",
+        "description": "Updates campaign metadata and content. Requires scope: `campaigns:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateCampaign",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCampaignRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated campaign", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Campaigns"],
+        "summary": "Delete a campaign",
+        "description": "Requires scope: `campaigns:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "deleteCampaign",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/schedule": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "post": {
+        "tags": ["Campaigns"],
+        "summary": "Schedule a campaign",
+        "description": "Transitions the campaign to `SCHEDULED`. The campaign must define a `scheduledAt`. Requires scope: `campaigns:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "scheduleCampaign",
+        "responses": {
+          "200": { "description": "Campaign scheduled", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/send": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "post": {
+        "tags": ["Campaigns"],
+        "summary": "Send a campaign",
+        "description": "Queues the campaign for immediate sending (`QUEUED_FOR_SENDING`). Pre-send guards in the platform may reject the transition. Requires scope: `campaigns:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "sendCampaign",
+        "responses": {
+          "200": { "description": "Campaign queued for sending", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/segments": {
+      "get": {
+        "tags": ["Segments"],
+        "summary": "List segments",
+        "description": "Lists segments in the project, newest first. Requires scope: `segments:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listSegments",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated segments", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedSegmentResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Segments"],
+        "summary": "Create a segment",
+        "description": "Requires scope: `segments:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createSegment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateSegmentRequest" } } } },
+        "responses": {
+          "201": { "description": "Segment created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SegmentResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/segments/{segmentId}": {
+      "parameters": [{ "$ref": "#/components/parameters/SegmentIdPath" }],
+      "get": {
+        "tags": ["Segments"],
+        "summary": "Get a segment",
+        "description": "Requires scope: `segments:read`. Tenancy: scoped to the API key's project; an id from another project returns 404.",
+        "operationId": "getSegment",
+        "responses": {
+          "200": { "description": "Segment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SegmentResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Segments"],
+        "summary": "Update a segment",
+        "description": "Requires scope: `segments:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateSegment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateSegmentRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated segment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SegmentResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Segments"],
+        "summary": "Delete a segment",
+        "description": "Requires scope: `segments:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "deleteSegment",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/segments/{segmentId}/members": {
+      "parameters": [{ "$ref": "#/components/parameters/SegmentIdPath" }],
+      "get": {
+        "tags": ["Segments"],
+        "summary": "List segment members",
+        "description": "Requires scope: `segments:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listSegmentMembers",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated members", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedSegmentMemberResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Segments"],
+        "summary": "Add members to a segment",
+        "description": "Adds subscribers (by id) to a static segment. Requires scope: `segments:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "addSegmentMembers",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SegmentMembersRequest" } } } },
+        "responses": {
+          "204": { "description": "Members added" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Segments"],
+        "summary": "Remove members from a segment",
+        "description": "Removes subscribers (by id) from a static segment. Requires scope: `segments:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "removeSegmentMembers",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SegmentMembersRequest" } } } },
+        "responses": {
+          "204": { "description": "Members removed" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/custom-fields": {
+      "get": {
+        "tags": ["Custom Fields"],
+        "summary": "List active custom fields",
+        "description": "Lists active custom field definitions in the project. Requires scope: `custom_fields:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listCustomFields",
+        "responses": {
+          "200": { "description": "Active custom fields", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/CustomFieldResponse" } } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Custom Fields"],
+        "summary": "Create a custom field",
+        "description": "Creates a custom field definition. SELECT and MULTI_SELECT require `options`. Requires scope: `custom_fields:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createCustomField",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCustomFieldRequest" },
+              "examples": {
+                "text": { "value": { "key": "company", "displayName": "Company", "type": "TEXT", "isRequired": false } },
+                "select": { "value": { "key": "plan", "displayName": "Plan", "type": "SELECT", "options": [ { "value": "free", "label": "Free" }, { "value": "pro", "label": "Pro" } ] } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Custom field created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomFieldResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}": {
+      "parameters": [{ "$ref": "#/components/parameters/CustomFieldKeyPath" }],
+      "get": {
+        "tags": ["Custom Fields"],
+        "summary": "Get a custom field by key",
+        "description": "Requires scope: `custom_fields:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getCustomField",
+        "responses": {
+          "200": { "description": "Custom field", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomFieldResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Custom Fields"],
+        "summary": "Archive a custom field",
+        "description": "Archives (soft-deletes) the custom field. Requires scope: `custom_fields:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "archiveCustomField",
+        "responses": {
+          "204": { "description": "Archived" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}/details": {
+      "parameters": [{ "$ref": "#/components/parameters/CustomFieldKeyPath" }],
+      "patch": {
+        "tags": ["Custom Fields"],
+        "summary": "Update custom field details",
+        "description": "Updates display name, description and required flag. Requires scope: `custom_fields:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateCustomFieldDetails",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCustomFieldDetailsRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated custom field", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomFieldResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}/config": {
+      "parameters": [{ "$ref": "#/components/parameters/CustomFieldKeyPath" }],
+      "patch": {
+        "tags": ["Custom Fields"],
+        "summary": "Update custom field config",
+        "description": "Updates the field's config (e.g. SELECT options) and default value. Requires scope: `custom_fields:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateCustomFieldConfig",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCustomFieldConfigRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated custom field", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomFieldResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/automations": {
+      "get": {
+        "tags": ["Automations"],
+        "summary": "List automations",
+        "description": "Lists automations in the project, newest first. Requires scope: `automations:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "listAutomations",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated automations", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedAutomationResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Automations"],
+        "summary": "Create an automation",
+        "description": "Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "createAutomation",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateAutomationRequest" } } } },
+        "responses": {
+          "201": { "description": "Automation created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}": {
+      "parameters": [{ "$ref": "#/components/parameters/AutomationIdPath" }],
+      "get": {
+        "tags": ["Automations"],
+        "summary": "Get an automation",
+        "description": "Requires scope: `automations:read`. Tenancy: scoped to the API key's project; an id from another project returns 404.",
+        "operationId": "getAutomation",
+        "responses": {
+          "200": { "description": "Automation", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Automations"],
+        "summary": "Update an automation",
+        "description": "Updates name, description, trigger and status. Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateAutomation",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateAutomationRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated automation", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Automations"],
+        "summary": "Delete an automation",
+        "description": "Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "deleteAutomation",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/content": {
+      "parameters": [{ "$ref": "#/components/parameters/AutomationIdPath" }],
+      "patch": {
+        "tags": ["Automations"],
+        "summary": "Update automation content",
+        "description": "Replaces the automation graph nodes and edges. Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateAutomationContent",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateAutomationContentRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated automation", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/activate": {
+      "parameters": [{ "$ref": "#/components/parameters/AutomationIdPath" }],
+      "post": {
+        "tags": ["Automations"],
+        "summary": "Activate an automation",
+        "description": "Transitions the automation to `ACTIVE`. Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "activateAutomation",
+        "responses": {
+          "200": { "description": "Automation activated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/pause": {
+      "parameters": [{ "$ref": "#/components/parameters/AutomationIdPath" }],
+      "post": {
+        "tags": ["Automations"],
+        "summary": "Pause an automation",
+        "description": "Transitions the automation to `PAUSED`. Requires scope: `automations:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "pauseAutomation",
+        "responses": {
+          "200": { "description": "Automation paused", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AutomationResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/sending-domain": {
+      "get": {
+        "tags": ["Sending Domain"],
+        "summary": "Get the project's sending domain",
+        "description": "Each project has at most one custom sending domain. Requires scope: `sending_domains:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getSendingDomain",
+        "responses": {
+          "200": { "description": "Sending domain", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SendingDomainResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "tags": ["Sending Domain"],
+        "summary": "Set up a custom sending domain",
+        "description": "Sets up a custom sending domain for the project. Requires scope: `sending_domains:write`. Tenancy: the tenant is taken from the API key context, never the body.",
+        "operationId": "setupSendingDomain",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SetupSendingDomainRequest" } } } },
+        "responses": {
+          "201": { "description": "Sending domain created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SendingDomainResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "patch": {
+        "tags": ["Sending Domain"],
+        "summary": "Update the sending domain",
+        "description": "Updates the custom sending domain name. Requires scope: `sending_domains:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "updateSendingDomain",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateSendingDomainRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated sending domain", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SendingDomainResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/UnprocessableEntity" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "delete": {
+        "tags": ["Sending Domain"],
+        "summary": "Remove the custom sending domain",
+        "description": "Requires scope: `sending_domains:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "removeSendingDomain",
+        "responses": {
+          "204": { "description": "Removed" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/sending-domain/dns-instructions": {
+      "get": {
+        "tags": ["Sending Domain"],
+        "summary": "Get DNS setup instructions",
+        "description": "Returns the DNS records that must be added to verify the domain. Requires scope: `sending_domains:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getDnsInstructions",
+        "responses": {
+          "200": { "description": "DNS setup instructions", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DnsInstructionsResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/sending-domain/verify-dns": {
+      "post": {
+        "tags": ["Sending Domain"],
+        "summary": "Verify the domain's DNS records",
+        "description": "Triggers a DNS verification check and returns the resulting status. Requires scope: `sending_domains:write`. Tenancy: scoped to the API key's project.",
+        "operationId": "verifyDns",
+        "responses": {
+          "200": { "description": "Verification result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DomainVerificationResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "get": {
+        "tags": ["Campaign Reports"],
+        "summary": "Get the campaign report",
+        "description": "Returns the generated AI report and its content for a campaign. Requires scope: `reports:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getCampaignReport",
+        "responses": {
+          "200": { "description": "Campaign report", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignReportResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/statistics": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "get": {
+        "tags": ["Campaign Reports"],
+        "summary": "Get live campaign statistics",
+        "description": "Returns live delivery and engagement statistics. Requires scope: `reports:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getCampaignStatistics",
+        "responses": {
+          "200": { "description": "Statistics", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CampaignStatisticsResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/timeline": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "get": {
+        "tags": ["Campaign Reports"],
+        "summary": "Get the statistics timeline",
+        "description": "Returns a time series of delivery and engagement counts. Requires scope: `reports:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getCampaignTimeline",
+        "responses": {
+          "200": { "description": "Timeline points", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TimeSeriesPointResponse" } } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/export": {
+      "parameters": [{ "$ref": "#/components/parameters/CampaignKeyPath" }],
+      "get": {
+        "tags": ["Campaign Reports"],
+        "summary": "Export statistics as CSV",
+        "description": "Returns the campaign statistics as a CSV file. Requires scope: `reports:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "exportCampaignCsv",
+        "responses": {
+          "200": {
+            "description": "CSV export",
+            "content": { "text/csv": { "schema": { "type": "string" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "Get the account subscription",
+        "description": "Returns the subscription for the account that owns this key's tenant. Requires scope: `billing:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getSubscription",
+        "responses": {
+          "200": { "description": "Subscription", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SubscriptionResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/billing/plans": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "List available plans",
+        "description": "Returns the plans available to the account. Requires scope: `billing:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getPlans",
+        "parameters": [
+          { "name": "currency", "in": "query", "required": false, "description": "ISO currency code used to price plan variants.", "schema": { "type": "string", "example": "USD" } }
+        ],
+        "responses": {
+          "200": { "description": "Plans", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/PlanResponse" } } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/billing/invoices": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "List invoices",
+        "description": "Returns the account's invoices, paginated. Requires scope: `billing:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getInvoices",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated invoices", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedInvoiceResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/billing/usage": {
+      "get": {
+        "tags": ["Billing"],
+        "summary": "Get the usage summary",
+        "description": "Returns current usage versus plan limits. Requires scope: `billing:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getUsageSummary",
+        "responses": {
+          "200": { "description": "Usage summary", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UsageSummaryResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/credits/balance": {
+      "get": {
+        "tags": ["AI Credits"],
+        "summary": "Get the AI credit balance",
+        "description": "Requires scope: `credits:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getCreditBalance",
+        "responses": {
+          "200": { "description": "Credit balance", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreditBalanceResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/credits/transactions": {
+      "get": {
+        "tags": ["AI Credits"],
+        "summary": "List AI credit transactions",
+        "description": "Returns the account's credit transactions, paginated. Requires scope: `credits:read`. Tenancy: resolved from the API key's tenant to its organization.",
+        "operationId": "getCreditTransactions",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/SizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated transactions", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedCreditTransactionResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/v1/project": {
+      "get": {
+        "tags": ["Project"],
+        "summary": "Get the current project",
+        "description": "Returns the project the API key is scoped to. Project creation and deletion are not exposed over the public API. Requires scope: `projects:read`. Tenancy: scoped to the API key's project.",
+        "operationId": "getCurrentProject",
+        "responses": {
+          "200": { "description": "Project", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProjectResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Project-scoped API key, format rm_(live|test)_... . May also be sent as `Authorization: Bearer rm_...`."
+      }
+    },
+    "parameters": {
+      "PageParam": { "name": "page", "in": "query", "required": false, "description": "Zero-based page index.", "schema": { "type": "integer", "minimum": 0, "default": 0 } },
+      "SizeParam": { "name": "size", "in": "query", "required": false, "description": "Page size, clamped to a maximum of 100.", "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 } },
+      "EmailPath": { "name": "email", "in": "path", "required": true, "description": "URL-encoded subscriber email.", "schema": { "type": "string", "format": "email" } },
+      "TopicKeyPath": { "name": "topicKey", "in": "path", "required": true, "description": "Topic key.", "schema": { "type": "string" } },
+      "CampaignKeyPath": { "name": "campaignKey", "in": "path", "required": true, "description": "Campaign key (e.g. APIT-001).", "schema": { "type": "string" } },
+      "SegmentIdPath": { "name": "segmentId", "in": "path", "required": true, "description": "Segment id (UUID).", "schema": { "type": "string", "format": "uuid" } },
+      "AutomationIdPath": { "name": "automationId", "in": "path", "required": true, "description": "Automation id (UUID).", "schema": { "type": "string", "format": "uuid" } },
+      "CustomFieldKeyPath": { "name": "key", "in": "path", "required": true, "description": "Custom field key.", "schema": { "type": "string" } }
+    },
+    "responses": {
+      "BadRequest": { "description": "Malformed request or invalid field values.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "Unauthorized": { "description": "Missing or invalid API key.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "Forbidden": { "description": "The API key lacks the required scope.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "NotFound": { "description": "The resource does not exist in this project.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "Conflict": { "description": "The request conflicts with the current state of the resource.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "UnprocessableEntity": { "description": "The request body failed domain validation.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } },
+      "TooManyRequests": {
+        "description": "Rate limit exceeded.",
+        "headers": {
+          "Retry-After": { "description": "Seconds to wait before retrying.", "schema": { "type": "integer" } },
+          "X-RateLimit-Limit": { "description": "Requests allowed per minute.", "schema": { "type": "integer" } },
+          "X-RateLimit-Remaining": { "description": "Requests remaining in the window.", "schema": { "type": "integer" } },
+          "X-RateLimit-Reset": { "description": "Epoch seconds when the window resets.", "schema": { "type": "integer" } }
+        },
+        "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } }
+      },
+      "InternalError": { "description": "Unexpected server error.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/ProblemDetail" } } } }
+    },
+    "schemas": {
+      "ProblemDetail": {
+        "type": "object",
+        "description": "RFC 7807 problem details.",
+        "properties": {
+          "type": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "status": { "type": "integer" },
+          "detail": { "type": "string" },
+          "instance": { "type": "string", "format": "uri" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "errors": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Field-level validation errors, present on 400/422." }
+        },
+        "required": ["type", "title", "status"]
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer" },
+          "size": { "type": "integer" },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer" },
+          "hasNext": { "type": "boolean" },
+          "hasPrevious": { "type": "boolean" }
+        },
+        "required": ["page", "size", "totalElements", "totalPages", "hasNext", "hasPrevious"]
+      },
+      "ConsentInfo": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "string" },
+          "sourceUrl": { "type": "string", "nullable": true },
+          "ipAddress": { "type": "string", "nullable": true },
+          "userAgent": { "type": "string", "nullable": true },
+          "consentText": { "type": "string", "nullable": true },
+          "formVersion": { "type": "string", "nullable": true }
+        },
+        "required": ["source"]
+      },
+      "CreateSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string", "maxLength": 50, "nullable": true },
+          "lastName": { "type": "string", "maxLength": 50, "nullable": true },
+          "phone": { "type": "string", "maxLength": 20, "nullable": true },
+          "topicKeys": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "consent": { "$ref": "#/components/schemas/ConsentInfo" },
+          "customFields": { "type": "object", "additionalProperties": { "type": "string" }, "nullable": true }
+        },
+        "required": ["email", "topicKeys", "consent"]
+      },
+      "UpdateSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string", "maxLength": 50, "nullable": true },
+          "lastName": { "type": "string", "maxLength": 50, "nullable": true },
+          "phone": { "type": "string", "maxLength": 20, "nullable": true },
+          "customFields": { "type": "object", "additionalProperties": { "type": "string" }, "nullable": true }
+        }
+      },
+      "SubscriberResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberKey": { "type": "string", "nullable": true },
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string", "nullable": true },
+          "lastName": { "type": "string", "nullable": true },
+          "phone": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "source": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedSubscriberResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/SubscriberResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "CreateTopicRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200 },
+          "description": { "type": "string", "maxLength": 1000, "nullable": true },
+          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "ARCHIVED"], "nullable": true },
+          "priority": { "type": "string", "enum": ["URGENT", "HIGH", "MEDIUM", "LOW"], "nullable": true },
+          "doubleOptInEnabled": { "type": "boolean", "nullable": true },
+          "icon": { "type": "string", "nullable": true }
+        },
+        "required": ["name"]
+      },
+      "UpdateTopicRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200, "nullable": true },
+          "description": { "type": "string", "maxLength": 1000, "nullable": true },
+          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "ARCHIVED"], "nullable": true },
+          "priority": { "type": "string", "enum": ["URGENT", "HIGH", "MEDIUM", "LOW"], "nullable": true },
+          "doubleOptInEnabled": { "type": "boolean", "nullable": true },
+          "icon": { "type": "string", "nullable": true }
+        }
+      },
+      "TopicResponse": {
+        "type": "object",
+        "properties": {
+          "topicKey": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "doubleOptInEnabled": { "type": "boolean" },
+          "subscriberCount": { "type": "integer", "format": "int64", "nullable": true },
+          "activeSubscriberCount": { "type": "integer", "format": "int64", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedTopicResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/TopicResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "GrantConsentRequest": {
+        "type": "object",
+        "properties": {
+          "topicKey": { "type": "string" },
+          "source": { "type": "string" },
+          "ipAddress": { "type": "string", "nullable": true },
+          "userAgent": { "type": "string", "nullable": true },
+          "sourceUrl": { "type": "string", "nullable": true },
+          "consentText": { "type": "string", "nullable": true },
+          "formVersion": { "type": "string", "nullable": true }
+        },
+        "required": ["topicKey", "source"]
+      },
+      "ConsentResponse": {
+        "type": "object",
+        "description": "When requiresConfirmation is true, the topic uses double opt-in and the subscriber must confirm via email before they are subscribed.",
+        "properties": {
+          "topicKey": { "type": "string" },
+          "status": { "type": "string", "description": "e.g. SUBSCRIBED, PENDING_CONFIRMATION, UNSUBSCRIBED." },
+          "requiresConfirmation": { "type": "boolean" },
+          "grantedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "confirmedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "tokenExpiresAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "ConsentPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberEmail": { "type": "string", "format": "email" },
+          "globallySuppressed": { "type": "boolean" },
+          "consents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "topicKey": { "type": "string", "nullable": true },
+                "topicName": { "type": "string", "nullable": true },
+                "status": { "type": "string", "nullable": true },
+                "grantedAt": { "type": "string", "format": "date-time", "nullable": true },
+                "confirmedAt": { "type": "string", "format": "date-time", "nullable": true },
+                "revokedAt": { "type": "string", "format": "date-time", "nullable": true }
+              }
+            }
+          }
+        }
+      },
+      "CreateSuppressionRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "reason": { "type": "string", "enum": ["GLOBAL_UNSUBSCRIBE", "SPAM_COMPLAINT", "HARD_BOUNCE"], "nullable": true },
+          "ipAddress": { "type": "string", "nullable": true }
+        },
+        "required": ["email"]
+      },
+      "SuppressionResponse": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "suppressed": { "type": "boolean" },
+          "reason": { "type": "string", "nullable": true },
+          "suppressedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "CreateCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200 },
+          "subject": { "type": "string", "maxLength": 500 },
+          "previewText": { "type": "string", "nullable": true },
+          "contentJson": { "type": "string", "nullable": true, "description": "Rich text content as a JSON string." },
+          "contentText": { "type": "string", "nullable": true },
+          "fromEmail": { "type": "string", "nullable": true },
+          "fromName": { "type": "string", "nullable": true },
+          "topicIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "segmentIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "sendStrategy": { "type": "string", "enum": ["DRAFT", "IMMEDIATE", "SCHEDULED"], "nullable": true },
+          "scheduledAt": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "required": ["name", "subject"]
+      },
+      "UpdateCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200, "nullable": true },
+          "subject": { "type": "string", "maxLength": 500, "nullable": true },
+          "previewText": { "type": "string", "nullable": true },
+          "contentJson": { "type": "string", "nullable": true },
+          "contentText": { "type": "string", "nullable": true },
+          "fromEmail": { "type": "string", "nullable": true },
+          "fromName": { "type": "string", "nullable": true },
+          "topicIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "segmentIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "sendStrategy": { "type": "string", "enum": ["DRAFT", "IMMEDIATE", "SCHEDULED"], "nullable": true },
+          "scheduledAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "CampaignResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "campaignKey": { "type": "string", "nullable": true },
+          "name": { "type": "string" },
+          "subject": { "type": "string", "nullable": true },
+          "previewText": { "type": "string", "nullable": true },
+          "contentJson": { "type": "string", "nullable": true },
+          "contentText": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "sendStrategy": { "type": "string", "nullable": true },
+          "topicIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "segmentIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "nullable": true },
+          "estimatedRecipientCount": { "type": "integer", "format": "int64", "nullable": true },
+          "scheduledAt": { "type": "string", "format": "date-time", "nullable": true },
+          "completedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "fromEmail": { "type": "string", "nullable": true },
+          "fromName": { "type": "string", "nullable": true },
+          "preSendScore": { "type": "integer", "nullable": true },
+          "preSendStatus": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedCampaignResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/CampaignResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "CreateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200 },
+          "description": { "type": "string", "maxLength": 500, "nullable": true },
+          "type": { "type": "string", "enum": ["STATIC", "DYNAMIC"], "nullable": true },
+          "rules": { "type": "string", "nullable": true, "description": "JSON rules definition for DYNAMIC segments." }
+        },
+        "required": ["name"]
+      },
+      "UpdateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200, "nullable": true },
+          "description": { "type": "string", "maxLength": 500, "nullable": true },
+          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "ARCHIVED"], "nullable": true },
+          "rules": { "type": "string", "nullable": true }
+        }
+      },
+      "SegmentResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "segmentKey": { "type": "string", "nullable": true },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "type": { "type": "string" },
+          "rules": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "memberCount": { "type": "integer", "format": "int64", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedSegmentResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/SegmentResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "SegmentMembersRequest": {
+        "type": "object",
+        "properties": {
+          "subscriberIds": { "type": "array", "items": { "type": "string", "format": "uuid" }, "minItems": 1 }
+        },
+        "required": ["subscriberIds"]
+      },
+      "SegmentMemberResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberId": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string", "nullable": true },
+          "lastName": { "type": "string", "nullable": true },
+          "addedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedSegmentMemberResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/SegmentMemberResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "SelectOptionPayload": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" }
+        },
+        "required": ["value", "label"]
+      },
+      "CreateCustomFieldRequest": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "displayName": { "type": "string", "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 500, "nullable": true },
+          "type": { "type": "string", "enum": ["TEXT", "LONG_TEXT", "NUMBER", "DECIMAL", "BOOLEAN", "DATE", "DATETIME", "EMAIL", "URL", "PHONE", "SELECT", "MULTI_SELECT"] },
+          "isRequired": { "type": "boolean", "nullable": true },
+          "defaultValue": { "type": "string", "nullable": true },
+          "options": { "type": "array", "items": { "$ref": "#/components/schemas/SelectOptionPayload" }, "nullable": true, "description": "Required for SELECT and MULTI_SELECT." }
+        },
+        "required": ["key", "displayName", "type"]
+      },
+      "UpdateCustomFieldDetailsRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": { "type": "string", "maxLength": 100, "nullable": true },
+          "description": { "type": "string", "maxLength": 500, "nullable": true },
+          "isRequired": { "type": "boolean", "nullable": true }
+        }
+      },
+      "UpdateCustomFieldConfigRequest": {
+        "type": "object",
+        "properties": {
+          "options": { "type": "array", "items": { "$ref": "#/components/schemas/SelectOptionPayload" }, "nullable": true },
+          "defaultValue": { "type": "string", "nullable": true }
+        }
+      },
+      "CustomFieldResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "key": { "type": "string" },
+          "displayName": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "type": { "type": "string" },
+          "status": { "type": "string" },
+          "isSystem": { "type": "boolean" },
+          "isRequired": { "type": "boolean" },
+          "defaultValue": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "archivedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "CreateAutomationRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200 },
+          "description": { "type": "string", "nullable": true },
+          "triggerType": { "type": "string", "enum": ["subscriber_joins_list", "segment_entered", "segment_left", "custom_event", "manual"], "nullable": true },
+          "triggerTopicId": { "type": "string", "format": "uuid", "nullable": true }
+        },
+        "required": ["name"]
+      },
+      "UpdateAutomationRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 200, "nullable": true },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "PAUSED", "ARCHIVED"], "nullable": true },
+          "triggerType": { "type": "string", "nullable": true },
+          "triggerTopicId": { "type": "string", "format": "uuid", "nullable": true }
+        }
+      },
+      "UpdateAutomationContentRequest": {
+        "type": "object",
+        "properties": {
+          "nodes": { "type": "string", "nullable": true, "description": "Automation graph nodes as a JSON string." },
+          "edges": { "type": "string", "nullable": true, "description": "Automation graph edges as a JSON string." }
+        }
+      },
+      "AutomationResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "automationKey": { "type": "string", "nullable": true },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "triggerType": { "type": "string", "nullable": true },
+          "triggerTopicId": { "type": "string", "format": "uuid", "nullable": true },
+          "triggerTopicName": { "type": "string", "nullable": true },
+          "nodeCount": { "type": "integer", "nullable": true },
+          "totalEntered": { "type": "integer", "nullable": true },
+          "totalCompleted": { "type": "integer", "nullable": true },
+          "currentlyActive": { "type": "integer", "nullable": true },
+          "nodes": { "type": "string", "nullable": true },
+          "edges": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedAutomationResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/AutomationResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "SetupSendingDomainRequest": {
+        "type": "object",
+        "properties": { "domainName": { "type": "string" } },
+        "required": ["domainName"]
+      },
+      "UpdateSendingDomainRequest": {
+        "type": "object",
+        "properties": { "domainName": { "type": "string" } },
+        "required": ["domainName"]
+      },
+      "DnsRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "nullable": true },
+          "recordType": { "type": "string", "nullable": true },
+          "host": { "type": "string", "nullable": true },
+          "expectedValue": { "type": "string", "nullable": true },
+          "actualValue": { "type": "string", "nullable": true },
+          "status": { "type": "string", "nullable": true },
+          "lastCheckedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "failureReason": { "type": "string", "nullable": true }
+        }
+      },
+      "SendingDomainResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "nullable": true },
+          "domainName": { "type": "string", "nullable": true },
+          "domainType": { "type": "string", "nullable": true },
+          "status": { "type": "string", "nullable": true },
+          "healthScore": { "type": "integer", "nullable": true },
+          "projectId": { "type": "integer", "format": "int64", "nullable": true },
+          "dnsRecords": { "type": "array", "items": { "$ref": "#/components/schemas/DnsRecordResponse" } },
+          "verifiedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "lastHealthCheckAt": { "type": "string", "format": "date-time", "nullable": true },
+          "expiresAt": { "type": "string", "format": "date-time", "nullable": true },
+          "suspensionReason": { "type": "string", "nullable": true },
+          "verificationAttempts": { "type": "integer" },
+          "sendingAllowed": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time", "nullable": true },
+          "updatedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "DnsInstructionsResponse": {
+        "type": "object",
+        "properties": {
+          "domainName": { "type": "string", "nullable": true },
+          "requiredRecords": { "type": "array", "items": { "$ref": "#/components/schemas/DnsRecordResponse" } },
+          "instructionsText": { "type": "string", "nullable": true }
+        }
+      },
+      "DomainVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "domainId": { "type": "integer", "format": "int64", "nullable": true },
+          "resultingStatus": { "type": "string", "nullable": true },
+          "healthScore": { "type": "integer", "nullable": true },
+          "records": { "type": "array", "items": { "$ref": "#/components/schemas/DnsRecordResponse" } },
+          "allVerified": { "type": "boolean" }
+        }
+      },
+      "CampaignReportResponse": {
+        "type": "object",
+        "properties": {
+          "campaignId": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "nullable": true },
+          "content": { "type": "string", "nullable": true },
+          "locale": { "type": "string", "nullable": true },
+          "aiModelId": { "type": "string", "nullable": true },
+          "version": { "type": "integer" },
+          "failureReason": { "type": "string", "nullable": true },
+          "generatedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time", "nullable": true },
+          "updatedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "CampaignStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "campaignId": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "nullable": true },
+          "totalSent": { "type": "integer", "format": "int64" },
+          "totalDelivered": { "type": "integer", "format": "int64" },
+          "totalBounced": { "type": "integer", "format": "int64" },
+          "hardBounced": { "type": "integer", "format": "int64" },
+          "softBounced": { "type": "integer", "format": "int64" },
+          "totalOpened": { "type": "integer", "format": "int64" },
+          "uniqueOpens": { "type": "integer", "format": "int64" },
+          "totalClicked": { "type": "integer", "format": "int64" },
+          "uniqueClicks": { "type": "integer", "format": "int64" },
+          "totalUnsubscribed": { "type": "integer", "format": "int64" },
+          "spamComplaints": { "type": "integer", "format": "int64" },
+          "deliveryRate": { "type": "number", "format": "double" },
+          "openRate": { "type": "number", "format": "double" },
+          "clickThroughRate": { "type": "number", "format": "double" },
+          "clickToOpenRate": { "type": "number", "format": "double" },
+          "unsubscribeRate": { "type": "number", "format": "double" },
+          "bounceRate": { "type": "number", "format": "double" },
+          "engagementScore": { "type": "number", "format": "double" },
+          "collectedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "lastUpdatedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "completedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "TimeSeriesPointResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "sent": { "type": "integer", "format": "int64" },
+          "delivered": { "type": "integer", "format": "int64" },
+          "opened": { "type": "integer", "format": "int64" },
+          "clicked": { "type": "integer", "format": "int64" },
+          "bounced": { "type": "integer", "format": "int64" }
+        }
+      },
+      "PlanLimitsResponse": {
+        "type": "object",
+        "properties": {
+          "maxSubscribers": { "type": "integer" },
+          "maxCampaignsPerMonth": { "type": "integer" },
+          "maxProjects": { "type": "integer" },
+          "maxAiRequestsPerMonth": { "type": "integer" },
+          "maxUsers": { "type": "integer" },
+          "maxEmailsPerMonth": { "type": "integer" },
+          "customFieldsEnabled": { "type": "boolean" },
+          "automationsEnabled": { "type": "boolean" },
+          "advancedSegmentsEnabled": { "type": "boolean" },
+          "customDomainEnabled": { "type": "boolean" },
+          "apiAccessEnabled": { "type": "boolean" },
+          "prioritySupport": { "type": "boolean" }
+        }
+      },
+      "SubscriptionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "nullable": true },
+          "planTier": { "type": "string", "nullable": true },
+          "status": { "type": "string", "nullable": true },
+          "billingInterval": { "type": "string", "nullable": true },
+          "aiCreditsTier": { "type": "integer", "nullable": true },
+          "pendingPlanTier": { "type": "string", "nullable": true },
+          "pendingAiCreditsTier": { "type": "integer", "nullable": true },
+          "pendingPlanEffectiveAt": { "type": "string", "format": "date-time", "nullable": true },
+          "currentPeriodStart": { "type": "string", "format": "date-time", "nullable": true },
+          "currentPeriodEnd": { "type": "string", "format": "date-time", "nullable": true },
+          "cancelledAt": { "type": "string", "format": "date-time", "nullable": true },
+          "cancellationReason": { "type": "string", "nullable": true },
+          "cancelAtPeriodEnd": { "type": "boolean" },
+          "isSendingAllowed": { "type": "boolean" },
+          "limits": { "$ref": "#/components/schemas/PlanLimitsResponse" },
+          "createdAt": { "type": "string", "format": "date-time", "nullable": true },
+          "updatedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "PlanVariantResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "nullable": true },
+          "aiCredits": { "type": "integer" },
+          "monthlyPriceCents": { "type": "integer" },
+          "yearlyPriceCents": { "type": "integer" },
+          "baseCurrency": { "type": "string", "nullable": true }
+        }
+      },
+      "PlanResponse": {
+        "type": "object",
+        "properties": {
+          "tier": { "type": "string", "nullable": true },
+          "name": { "type": "string", "nullable": true },
+          "description": { "type": "string", "nullable": true },
+          "limits": { "$ref": "#/components/schemas/PlanLimitsResponse" },
+          "variants": { "type": "array", "items": { "$ref": "#/components/schemas/PlanVariantResponse" } },
+          "isCurrent": { "type": "boolean" }
+        }
+      },
+      "InvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64", "nullable": true },
+          "externalId": { "type": "string", "nullable": true },
+          "status": { "type": "string", "nullable": true },
+          "amountCents": { "type": "integer" },
+          "currency": { "type": "string", "nullable": true },
+          "invoiceUrl": { "type": "string", "nullable": true },
+          "invoiceNumber": { "type": "string", "nullable": true },
+          "billingReason": { "type": "string", "nullable": true },
+          "paidAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "PaginatedInvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/InvoiceResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "UsageSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "subscribersCurrent": { "type": "integer" },
+          "subscribersLimit": { "type": "integer" },
+          "subscribersPercent": { "type": "number", "format": "double" },
+          "campaignsCurrentMonth": { "type": "integer" },
+          "campaignsLimit": { "type": "integer" },
+          "campaignsPercent": { "type": "number", "format": "double" },
+          "projectsCurrent": { "type": "integer" },
+          "projectsLimit": { "type": "integer" },
+          "aiCreditsCurrentMonth": { "type": "number" },
+          "aiCreditsLimit": { "type": "integer" },
+          "aiCreditsPercent": { "type": "number", "format": "double" },
+          "emailsCurrentMonth": { "type": "integer" },
+          "emailsLimit": { "type": "integer" },
+          "emailsPercent": { "type": "number", "format": "double" }
+        }
+      },
+      "CreditBalanceResponse": {
+        "type": "object",
+        "properties": {
+          "balance": { "type": "number" },
+          "creditsDepleted": { "type": "boolean" },
+          "lastUpdatedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "CreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "type": { "type": "string", "nullable": true },
+          "amount": { "type": "number" },
+          "balanceAfter": { "type": "number" },
+          "referenceId": { "type": "string", "format": "uuid", "nullable": true },
+          "description": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaginatedCreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/CreditTransactionResponse" } },
+          "pagination": { "$ref": "#/components/schemas/PaginationMetadata" }
+        }
+      },
+      "ProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "projectKey": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "selected": { "type": "boolean", "nullable": true },
+          "aiSegmentSuggestionsEnabled": { "type": "boolean", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

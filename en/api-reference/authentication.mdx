@@ -1,0 +1,64 @@
+---
+title: "Authentication"
+description: "Authenticate every request with a project-scoped API key and the right scopes."
+---
+
+Every request to the Railmail API must be authenticated with a **project-scoped API key**. Requests without a valid key return `401`.
+
+## API keys
+
+Keys have the format `rm_(live|test)_<random>`:
+
+| Prefix | Environment | Use for |
+| --- | --- | --- |
+| `rm_live_...` | Live | Production traffic against real subscribers and campaigns. |
+| `rm_test_...` | Test | Development and testing without affecting live data. |
+
+A key resolves to exactly one project. All reads and writes are automatically isolated to that project and its tenant — a key cannot read or modify another project's data.
+
+<Warning>
+  Treat API keys like passwords. Never commit them to source control or expose them in client-side code. Store them in environment variables or a secrets manager.
+</Warning>
+
+## Sending the key
+
+Pass the key in the `X-API-Key` header:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "X-API-Key: rm_live_your_key_here"
+```
+
+Alternatively, send it as a bearer token — useful with clients that only support `Authorization`:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "Authorization: Bearer rm_live_your_key_here"
+```
+
+Both are equivalent. Use whichever your HTTP client makes easier.
+
+## Scopes
+
+Every key carries a set of **scopes**. Each operation requires a specific scope, documented in that operation's description (for example, `Requires scope: subscribers:write`). A request whose key lacks the required scope returns `403` — this is different from `401`, which means the key itself is missing or invalid.
+
+The full scope taxonomy:
+
+| Resource | Scopes |
+| --- | --- |
+| Subscribers | `subscribers:read`, `subscribers:write` |
+| Topics | `topics:read`, `topics:write` |
+| Segments | `segments:read`, `segments:write` |
+| Campaigns | `campaigns:read`, `campaigns:write` |
+| Automations | `automations:read`, `automations:write` |
+| Custom fields | `custom_fields:read`, `custom_fields:write` |
+| Sending domains | `sending_domains:read`, `sending_domains:write` |
+| Consents | `consents:manage` |
+| Suppressions | `suppressions:manage` |
+| Reports | `reports:read` |
+| Billing | `billing:read` |
+| AI credits | `credits:read` |
+
+<Tip>
+  Grant each key only the scopes it needs. A key used purely to sync subscribers doesn't need `campaigns:write` or `billing:read`.
+</Tip>

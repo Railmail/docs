@@ -1,0 +1,46 @@
+---
+title: "Limity zapytań"
+description: "Zapytania są ograniczone do 60 na minutę na klucz API."
+---
+
+Railmail ogranicza zapytania do **60 na minutę na klucz API**. Limit jest stosowany per klucz, więc różne klucze mają osobne budżety.
+
+## Nagłówki limitów
+
+Każda odpowiedź zawiera nagłówki opisujące Twój bieżący budżet:
+
+| Nagłówek | Opis |
+| --- | --- |
+| `X-RateLimit-Limit` | Maksymalna liczba zapytań dozwolona w oknie (60). |
+| `X-RateLimit-Remaining` | Liczba zapytań pozostała w bieżącym oknie. |
+| `X-RateLimit-Reset` | Kiedy bieżące okno się resetuje, czyli kiedy `Remaining` się odnowi. |
+
+Czytaj te nagłówki, aby dostosować tempo zapytań, zanim osiągniesz limit.
+
+## Gdy przekroczysz limit
+
+Po przekroczeniu limitu API zwraca `429 Too Many Requests` z nagłówkiem `Retry-After`, który mówi, ile sekund odczekać przed ponowieniem:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+Content-Type: application/problem+json
+```
+
+## Jak elegancko obsłużyć limity
+
+<Steps>
+  <Step title="Obserwuj X-RateLimit-Remaining">
+    Zwalniaj, gdy `Remaining` zbliża się do zera, zamiast wysyłać zapytania aż do odrzucenia.
+  </Step>
+  <Step title="Respektuj Retry-After przy 429">
+    Gdy otrzymasz `429`, odczekaj liczbę sekund z `Retry-After` przed ponowieniem — nie ponawiaj natychmiast.
+  </Step>
+  <Step title="Stosuj backoff przy powtarzających się 429">
+    Jeśli wciąż osiągasz limit, dodaj wykładniczy backoff i rozważ grupowanie pracy lub rozłożenie jej w czasie.
+  </Step>
+</Steps>
+
+<Tip>
+  Przy pracy masowej, jak import wielu subskrybentów, dodaj małe opóźnienie między zapytaniami, aby pozostać wygodnie poniżej 60/minutę zamiast wysyłać serie i wpadać w throttling.
+</Tip>

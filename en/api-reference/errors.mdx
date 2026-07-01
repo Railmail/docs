@@ -1,0 +1,51 @@
+---
+title: "Errors"
+description: "Railmail returns RFC 7807 problem details for every error."
+---
+
+Railmail uses conventional HTTP status codes to indicate the outcome of a request. Codes in the `2xx` range mean success, `4xx` means the request failed given the information provided, and `5xx` means something went wrong on Railmail's side.
+
+## Error format
+
+All errors use [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807) `application/problem+json`. The body always includes `type`, `title` and `status`, and may include more:
+
+```json
+{
+  "type": "https://api.railmail.app/problems/validation-error",
+  "title": "Validation failed",
+  "status": 400,
+  "detail": "One or more fields are invalid.",
+  "instance": "/api/v1/subscribers",
+  "timestamp": "2026-07-01T10:15:30Z",
+  "errors": {
+    "email": "must be a valid email address"
+  }
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `type` | A URI identifying the problem type. |
+| `title` | A short, human-readable summary of the problem. |
+| `status` | The HTTP status code, repeated for convenience. |
+| `detail` | A human-readable explanation specific to this occurrence. |
+| `instance` | A URI reference for the specific request that failed. |
+| `timestamp` | When the error occurred (ISO 8601). |
+| `errors` | Present on validation failures — a map of field name to message. |
+
+## Common status codes
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| `400` | Bad request | Fix the request body or parameters. Check the `errors` map for field-level detail. |
+| `401` | Unauthorized | The API key is missing or invalid. See [Authentication](/en/api-reference/authentication). |
+| `403` | Forbidden | The key is valid but lacks the required scope for this operation. |
+| `404` | Not found | The resource doesn't exist in this project. |
+| `409` | Conflict | The request conflicts with the current state (for example, a duplicate). |
+| `422` | Unprocessable | The request is well-formed but semantically invalid. |
+| `429` | Too many requests | You've hit the rate limit. See [Rate limits](/en/api-reference/rate-limits). |
+| `5xx` | Server error | Retry with backoff. If it persists, contact support. |
+
+<Tip>
+  Always read the `title` and `detail` fields — they explain what went wrong far better than the status code alone. For `400` responses, the `errors` map pinpoints exactly which fields to fix.
+</Tip>

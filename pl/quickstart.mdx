@@ -1,0 +1,76 @@
+---
+title: "Szybki start"
+description: "Od klucza API do pierwszego zapisanego użytkownika w kilka minut."
+---
+
+Ten przewodnik przeprowadzi Cię od zera do subskrybenta dodanego do jednego z Twoich tematów, korzystając z [Railmail Public API](/pl/api-reference/introduction).
+
+## Wymagania wstępne
+
+Zanim zaczniesz, potrzebujesz:
+
+- Projektu Railmail z **kluczem API przypisanym do projektu** (format `rm_live_...` lub `rm_test_...`). Utwórz go w [panelu](https://app.railmail.app).
+- Narzędzia do wykonywania zapytań HTTP — `curl`, Postman lub klienta HTTP w Twoim języku.
+
+<Tip>
+  Podczas integracji używaj klucza `rm_test_...`, aby nie ruszać danych produkcyjnych.
+</Tip>
+
+## Dodaj subskrybenta do tematu
+
+<Steps>
+  <Step title="Ustaw klucz API">
+    Zapisz klucz w zmiennej środowiskowej, aby nie wklejać go do każdego zapytania.
+
+    ```bash
+    export RAILMAIL_API_KEY="rm_test_twoj_klucz"
+    ```
+  </Step>
+  <Step title="Sprawdź klucze tematów">
+    Wylistuj tematy w swoim projekcie i zanotuj `topicKey`, do którego chcesz zapisać użytkowników.
+
+    ```bash
+    curl https://api.railmail.app/api/v1/topics \
+      -H "X-API-Key: $RAILMAIL_API_KEY"
+    ```
+  </Step>
+  <Step title="Utwórz subskrybenta i zapisz go">
+    Utwórz subskrybenta i zapisz go do tematu w jednym zapytaniu, podając `topicKeys` oraz `consent`.
+
+    ```bash
+    curl -X POST https://api.railmail.app/api/v1/subscribers \
+      -H "X-API-Key: $RAILMAIL_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "user@example.com",
+        "topicKeys": ["newsletter"],
+        "consent": "GRANTED"
+      }'
+    ```
+
+    Jeśli temat korzysta z double opt-in, zgoda zostaje utworzona jako `PENDING_CONFIRMATION`, a użytkownik musi ją potwierdzić przez otrzymaną wiadomość, zanim zostanie uznany za zapisanego.
+  </Step>
+  <Step title="Zweryfikuj">
+    Pobierz subskrybenta, aby potwierdzić zapis.
+
+    ```bash
+    curl https://api.railmail.app/api/v1/subscribers/user@example.com \
+      -H "X-API-Key: $RAILMAIL_API_KEY"
+    ```
+  </Step>
+</Steps>
+
+## Następne kroki
+
+<CardGroup cols={2}>
+  <Card title="Przeglądaj wszystkie endpointy" icon="code" href="/pl/api-reference/introduction">
+    Subskrybenci, kampanie, segmenty, automatyzacje i więcej.
+  </Card>
+  <Card title="Uwierzytelnianie i zakresy" icon="key" href="/pl/api-reference/authentication">
+    Zrozum, co może dany klucz i jak go zabezpieczyć.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Potrzebujesz pomocy? Napisz na [support@railmail.app](mailto:support@railmail.app).
+</Tip>

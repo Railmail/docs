@@ -1,0 +1,64 @@
+---
+title: "Uwierzytelnianie"
+description: "Uwierzytelnij każde zapytanie kluczem API przypisanym do projektu i odpowiednimi zakresami."
+---
+
+Każde zapytanie do Railmail API musi być uwierzytelnione **kluczem API przypisanym do projektu**. Zapytania bez ważnego klucza zwracają `401`.
+
+## Klucze API
+
+Klucze mają format `rm_(live|test)_<losowy>`:
+
+| Prefiks | Środowisko | Zastosowanie |
+| --- | --- | --- |
+| `rm_live_...` | Produkcyjne | Ruch produkcyjny na prawdziwych subskrybentach i kampaniach. |
+| `rm_test_...` | Testowe | Rozwój i testy bez wpływu na dane produkcyjne. |
+
+Klucz odpowiada dokładnie jednemu projektowi. Wszystkie odczyty i zapisy są automatycznie izolowane do tego projektu i jego tenanta — klucz nie może odczytać ani zmodyfikować danych innego projektu.
+
+<Warning>
+  Traktuj klucze API jak hasła. Nigdy nie umieszczaj ich w repozytorium ani w kodzie po stronie klienta. Przechowuj je w zmiennych środowiskowych lub menedżerze sekretów.
+</Warning>
+
+## Wysyłanie klucza
+
+Przekaż klucz w nagłówku `X-API-Key`:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "X-API-Key: rm_live_twoj_klucz"
+```
+
+Alternatywnie wyślij go jako token bearer — przydatne z klientami obsługującymi tylko `Authorization`:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "Authorization: Bearer rm_live_twoj_klucz"
+```
+
+Oba sposoby są równoważne. Użyj tego, który jest wygodniejszy w Twoim kliencie HTTP.
+
+## Zakresy
+
+Każdy klucz posiada zestaw **zakresów** (scopes). Każda operacja wymaga określonego zakresu, opisanego w jej opisie (na przykład `Requires scope: subscribers:write`). Zapytanie, którego klucz nie ma wymaganego zakresu, zwraca `403` — to różnica względem `401`, który oznacza brak lub nieważny klucz.
+
+Pełna taksonomia zakresów:
+
+| Zasób | Zakresy |
+| --- | --- |
+| Subskrybenci | `subscribers:read`, `subscribers:write` |
+| Tematy | `topics:read`, `topics:write` |
+| Segmenty | `segments:read`, `segments:write` |
+| Kampanie | `campaigns:read`, `campaigns:write` |
+| Automatyzacje | `automations:read`, `automations:write` |
+| Pola niestandardowe | `custom_fields:read`, `custom_fields:write` |
+| Domeny wysyłkowe | `sending_domains:read`, `sending_domains:write` |
+| Zgody | `consents:manage` |
+| Wykluczenia | `suppressions:manage` |
+| Raporty | `reports:read` |
+| Rozliczenia | `billing:read` |
+| Kredyty AI | `credits:read` |
+
+<Tip>
+  Przyznawaj każdemu kluczowi tylko te zakresy, których potrzebuje. Klucz służący wyłącznie do synchronizacji subskrybentów nie potrzebuje `campaigns:write` ani `billing:read`.
+</Tip>

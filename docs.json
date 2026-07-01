@@ -1,34 +1,97 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Railmail",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#5E6AD2",
+    "light": "#7281FF",
+    "dark": "#7C5CFF"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "languages": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "language": "en",
+        "tabs": [
+          {
+            "tab": "Guides",
+            "pages": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "en/index",
+                  "en/quickstart"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Reference",
+            "pages": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "en/api-reference/introduction",
+                  "en/api-reference/authentication",
+                  "en/api-reference/errors",
+                  "en/api-reference/rate-limits"
+                ]
+              },
+              {
+                "group": "Endpoints",
+                "openapi": "api-reference/openapi.json"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "pl",
+        "tabs": [
+          {
+            "tab": "Przewodniki",
+            "pages": [
+              {
+                "group": "Pierwsze kroki",
+                "pages": [
+                  "pl/index",
+                  "pl/quickstart"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Dokumentacja API",
+            "pages": [
+              {
+                "group": "Wprowadzenie",
+                "pages": [
+                  "pl/api-reference/introduction",
+                  "pl/api-reference/authentication",
+                  "pl/api-reference/errors",
+                  "pl/api-reference/rate-limits"
+                ]
+              },
+              {
+                "group": "Endpointy",
+                "openapi": "api-reference/openapi.pl.json"
+              }
+            ]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "API",
+          "href": "https://api.railmail.app",
+          "icon": "code"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Portal",
+          "href": "https://app.railmail.app",
+          "icon": "gauge"
         }
       ]
     }
@@ -41,13 +104,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@railmail.app"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Portal",
+      "href": "https://app.railmail.app"
     }
   },
   "contextual": {
@@ -64,9 +127,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/railmail",
+      "github": "https://github.com/railmail",
+      "linkedin": "https://linkedin.com/company/railmail"
     }
   }
 }

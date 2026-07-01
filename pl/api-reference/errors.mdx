@@ -1,0 +1,51 @@
+---
+title: "Błędy"
+description: "Railmail zwraca błędy w formacie RFC 7807 problem details."
+---
+
+Railmail używa konwencjonalnych kodów statusu HTTP do wskazania wyniku zapytania. Kody z zakresu `2xx` oznaczają sukces, `4xx` oznacza, że zapytanie się nie powiodło przy podanych danych, a `5xx` oznacza błąd po stronie Railmail.
+
+## Format błędu
+
+Wszystkie błędy używają [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807) `application/problem+json`. Treść zawsze zawiera `type`, `title` i `status`, a może zawierać więcej pól:
+
+```json
+{
+  "type": "https://api.railmail.app/problems/validation-error",
+  "title": "Validation failed",
+  "status": 400,
+  "detail": "One or more fields are invalid.",
+  "instance": "/api/v1/subscribers",
+  "timestamp": "2026-07-01T10:15:30Z",
+  "errors": {
+    "email": "must be a valid email address"
+  }
+}
+```
+
+| Pole | Opis |
+| --- | --- |
+| `type` | URI identyfikujące typ problemu. |
+| `title` | Krótkie, czytelne podsumowanie problemu. |
+| `status` | Kod statusu HTTP, powtórzony dla wygody. |
+| `detail` | Czytelne wyjaśnienie właściwe dla tego wystąpienia. |
+| `instance` | Odniesienie URI do konkretnego zapytania, które zawiodło. |
+| `timestamp` | Kiedy wystąpił błąd (ISO 8601). |
+| `errors` | Obecne przy błędach walidacji — mapa nazwy pola na komunikat. |
+
+## Najczęstsze kody statusu
+
+| Status | Znaczenie | Co zrobić |
+| --- | --- | --- |
+| `400` | Bad request | Popraw treść zapytania lub parametry. Sprawdź mapę `errors` dla szczegółów per pole. |
+| `401` | Unauthorized | Brak lub nieważny klucz API. Zobacz [Uwierzytelnianie](/pl/api-reference/authentication). |
+| `403` | Forbidden | Klucz jest ważny, ale nie ma zakresu wymaganego dla tej operacji. |
+| `404` | Not found | Zasób nie istnieje w tym projekcie. |
+| `409` | Conflict | Zapytanie koliduje z bieżącym stanem (np. duplikat). |
+| `422` | Unprocessable | Zapytanie jest poprawne formalnie, ale niepoprawne semantycznie. |
+| `429` | Too many requests | Osiągnięto limit zapytań. Zobacz [Limity zapytań](/pl/api-reference/rate-limits). |
+| `5xx` | Błąd serwera | Ponów z wykładniczym opóźnieniem. Jeśli się powtarza, skontaktuj się z pomocą. |
+
+<Tip>
+  Zawsze czytaj pola `title` i `detail` — wyjaśniają, co poszło nie tak, znacznie lepiej niż sam kod statusu. Dla odpowiedzi `400` mapa `errors` wskazuje dokładnie, które pola poprawić.
+</Tip>

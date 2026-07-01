@@ -1,0 +1,5061 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Railmail Public API",
+    "version": "v1",
+    "description": "REST API do programistycznego zarządzania platformą email marketingu Railmail.\n\n## Uwierzytelnianie\nKażde żądanie musi zawierać klucz API przypisany do projektu — w nagłówku `X-API-Key` lub jako `Authorization: Bearer rm_...`. Klucze mają format `rm_(live|test)_<losowy>`. Klucz odpowiada dokładnie jednemu projektowi; wszystkie odczyty i zapisy są automatycznie izolowane do tego projektu i jego tenanta. Klucz nie może odczytać ani zmodyfikować danych innego projektu.\n\n## Zakresy\nKażdy klucz posiada zestaw zakresów. Każda operacja wymaga określonego zakresu, opisanego w jej opisie (na przykład `Wymagany zakres: subscribers:write`). Żądanie, którego klucz nie ma wymaganego zakresu, zwraca `403`.\n\nPełna taksonomia zakresów: `subscribers:read|write`, `topics:read|write`, `segments:read|write`, `campaigns:read|write`, `automations:read|write`, `custom_fields:read|write`, `sending_domains:read|write`, `consents:manage`, `suppressions:manage`, `reports:read`, `billing:read`, `credits:read`.\n\n## Limity zapytań\nŻądania są ograniczone do 60 na minutę na klucz. Odpowiedź zawiera nagłówki `X-RateLimit-Limit`, `X-RateLimit-Remaining` i `X-RateLimit-Reset`. Po przekroczeniu limitu API zwraca `429` z nagłówkiem `Retry-After`.\n\n## Błędy\nWszystkie błędy używają RFC 7807 `application/problem+json` z polami `type`, `title`, `status`, `detail`, `instance`, `timestamp` oraz (przy walidacji) `errors`.\n\n## Typowy przepływ: dodaj użytkowników do swoich tematów\n1. `GET /topics`, aby odkryć klucze tematów.\n2. `POST /subscribers` z `topicKeys` + `consent`, aby utworzyć subskrybenta i zapisać go w jednym wywołaniu, LUB `POST /subscribers/{email}/consents`, aby zapisać istniejącego subskrybenta.\nJeśli temat korzysta z double opt-in, zgoda jest tworzona jako `PENDING_CONFIRMATION`, a subskrybent musi ją potwierdzić przez otrzymaną wiadomość, zanim zostanie zapisany.",
+    "contact": {
+      "name": "Railmail",
+      "url": "https://railmail.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.railmail.app",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Subskrybenci",
+      "description": "Zarządzaj subskrybentami w projekcie klucza API"
+    },
+    {
+      "name": "Tematy",
+      "description": "Zarządzaj tematami subskrypcji w projekcie"
+    },
+    {
+      "name": "Zgody",
+      "description": "Nadawaj, odczytuj i cofaj zgodę subskrybenta per temat"
+    },
+    {
+      "name": "Wykluczenia",
+      "description": "Zarządzaj listą wykluczeń projektu"
+    },
+    {
+      "name": "Kampanie",
+      "description": "Twórz, zarządzaj, planuj i wysyłaj kampanie e-mail"
+    },
+    {
+      "name": "Segmenty",
+      "description": "Twórz, zarządzaj i wypełniaj segmenty subskrybentów"
+    },
+    {
+      "name": "Pola niestandardowe",
+      "description": "Definiuj i zarządzaj polami niestandardowymi subskrybentów"
+    },
+    {
+      "name": "Automatyzacje",
+      "description": "Twórz, zarządzaj i kontroluj przepływy automatyzacji e-mail"
+    },
+    {
+      "name": "Domena wysyłkowa",
+      "description": "Zarządzaj własną domeną wysyłkową projektu i weryfikacją DNS"
+    },
+    {
+      "name": "Raporty kampanii",
+      "description": "Odczytuj statystyki kampanii, raport AI, oś czasu i eksport CSV"
+    },
+    {
+      "name": "Rozliczenia",
+      "description": "Odczytuj subskrypcję, plany, faktury i zużycie dla konta"
+    },
+    {
+      "name": "Kredyty AI",
+      "description": "Odczytuj saldo kredytów AI i historię transakcji dla konta"
+    },
+    {
+      "name": "Projekt",
+      "description": "Odczytaj projekt, do którego przypisany jest klucz API"
+    }
+  ],
+  "paths": {
+    "/api/v1/subscribers": {
+      "post": {
+        "tags": [
+          "Subskrybenci"
+        ],
+        "summary": "Utwórz subskrybenta",
+        "description": "Tworzy subskrybenta w projekcie klucza i zapisuje go do podanych tematów w jednym wywołaniu. Jeśli temat korzysta z double opt-in, wynikowa zgoda ma status `PENDING_CONFIRMATION`. Wymagany zakres: `subscribers:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createSubscriber",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubscriberRequest"
+              },
+              "examples": {
+                "addUserToTopics": {
+                  "summary": "Add a customer's user to topics with consent",
+                  "value": {
+                    "email": "jane@example.com",
+                    "firstName": "Jane",
+                    "lastName": "Doe",
+                    "topicKeys": [
+                      "APIT-1",
+                      "APIT-2"
+                    ],
+                    "consent": {
+                      "source": "checkout-form",
+                      "sourceUrl": "https://shop.example.com/checkout",
+                      "ipAddress": "203.0.113.10",
+                      "userAgent": "Mozilla/5.0",
+                      "consentText": "I agree to receive product updates",
+                      "formVersion": "v3"
+                    },
+                    "customFields": {
+                      "plan": "pro"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subskrybent utworzony",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriberResponse"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "subscriberKey": "SUB-1A2B",
+                      "email": "jane@example.com",
+                      "firstName": "Jane",
+                      "lastName": "Doe",
+                      "phone": null,
+                      "status": "ACTIVE",
+                      "source": "API",
+                      "createdAt": "2026-06-24T10:15:00Z",
+                      "updatedAt": "2026-06-24T10:15:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Subskrybenci"
+        ],
+        "summary": "Wylistuj subskrybentów",
+        "description": "Listuje subskrybentów w projekcie, od najnowszych. Wymagany zakres: `subscribers:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listSubscribers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowani subskrybenci",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSubscriberResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EmailPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Subskrybenci"
+        ],
+        "summary": "Pobierz subskrybenta po adresie e-mail",
+        "description": "Wymagany zakres: `subscribers:read`. Dzierżawa: ograniczone do projektu klucza API; e-mail z innego projektu zwraca 404.",
+        "operationId": "getSubscriber",
+        "responses": {
+          "200": {
+            "description": "Subskrybent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriberResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Subskrybenci"
+        ],
+        "summary": "Zaktualizuj subskrybenta",
+        "description": "Aktualizuje imię, telefon i pola niestandardowe. Wymagany zakres: `subscribers:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateSubscriber",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubscriberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowany subskrybent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriberResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subskrybenci"
+        ],
+        "summary": "Usuń subskrybenta",
+        "description": "Wymagany zakres: `subscribers:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "deleteSubscriber",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/topics": {
+      "get": {
+        "tags": [
+          "Tematy"
+        ],
+        "summary": "Wylistuj tematy",
+        "description": "Listuje tematy subskrypcji w projekcie. Wymagany zakres: `topics:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listTopics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane tematy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTopicResponse"
+                },
+                "examples": {
+                  "discoverTopics": {
+                    "summary": "Discover topic keys before subscribing users",
+                    "value": {
+                      "data": [
+                        {
+                          "topicKey": "APIT-1",
+                          "name": "Newsletter",
+                          "description": "Weekly news",
+                          "status": "ACTIVE",
+                          "doubleOptInEnabled": true,
+                          "subscriberCount": 1200,
+                          "activeSubscriberCount": 1180,
+                          "createdAt": "2026-06-01T09:00:00Z"
+                        }
+                      ],
+                      "pagination": {
+                        "page": 0,
+                        "size": 20,
+                        "totalElements": 1,
+                        "totalPages": 1,
+                        "hasNext": false,
+                        "hasPrevious": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tematy"
+        ],
+        "summary": "Utwórz temat",
+        "description": "Wymagany zakres: `topics:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createTopic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Temat utworzony",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/topics/{topicKey}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TopicKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Tematy"
+        ],
+        "summary": "Pobierz temat po kluczu",
+        "description": "Wymagany zakres: `topics:read`. Dzierżawa: ograniczone do projektu klucza API; klucz z innego projektu zwraca 404.",
+        "operationId": "getTopic",
+        "responses": {
+          "200": {
+            "description": "Temat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Tematy"
+        ],
+        "summary": "Zaktualizuj temat",
+        "description": "Wymagany zakres: `topics:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateTopic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowany temat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tematy"
+        ],
+        "summary": "Usuń temat",
+        "description": "Wymagany zakres: `topics:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "deleteTopic",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}/consents": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EmailPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Zgody"
+        ],
+        "summary": "Nadaj zgodę na temat",
+        "description": "Zapisuje istniejącego subskrybenta do tematu. Jeśli temat korzysta z double opt-in, zgoda jest tworzona jako `PENDING_CONFIRMATION` (`requiresConfirmation: true`), a subskrybent musi ją potwierdzić przez e-mail, zanim zostanie zapisany. Wymagany zakres: `consents:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "grantConsent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantConsentRequest"
+              },
+              "examples": {
+                "subscribeExisting": {
+                  "summary": "Add an existing subscriber to a topic",
+                  "value": {
+                    "topicKey": "APIT-1",
+                    "source": "preference-center",
+                    "ipAddress": "203.0.113.10",
+                    "userAgent": "Mozilla/5.0",
+                    "sourceUrl": "https://shop.example.com/prefs",
+                    "consentText": "I agree to receive the newsletter",
+                    "formVersion": "v3"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Zgoda nadana (lub oczekująca potwierdzenia dla tematów z double opt-in)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                },
+                "examples": {
+                  "pendingDoubleOptIn": {
+                    "summary": "Topic requires confirmation",
+                    "value": {
+                      "topicKey": "APIT-1",
+                      "status": "PENDING_CONFIRMATION",
+                      "requiresConfirmation": true,
+                      "grantedAt": "2026-06-24T10:20:00Z",
+                      "confirmedAt": null,
+                      "tokenExpiresAt": "2026-06-26T10:20:00Z"
+                    }
+                  },
+                  "subscribedDirectly": {
+                    "summary": "Single opt-in topic",
+                    "value": {
+                      "topicKey": "APIT-2",
+                      "status": "SUBSCRIBED",
+                      "requiresConfirmation": false,
+                      "grantedAt": "2026-06-24T10:20:00Z",
+                      "confirmedAt": "2026-06-24T10:20:00Z",
+                      "tokenExpiresAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Zgody"
+        ],
+        "summary": "Wylistuj zgody subskrybenta",
+        "description": "Zwraca status zgody per temat oraz informację, czy subskrybent jest globalnie wykluczony. Wymagany zakres: `consents:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getConsents",
+        "responses": {
+          "200": {
+            "description": "Preferencje zgód",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentPreferencesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/subscribers/{email}/consents/{topicKey}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EmailPath"
+        },
+        {
+          "$ref": "#/components/parameters/TopicKeyPath"
+        }
+      ],
+      "delete": {
+        "tags": [
+          "Zgody"
+        ],
+        "summary": "Cofnij zgodę na temat",
+        "description": "Wypisuje subskrybenta z pojedynczego tematu (nie jest to globalne wypisanie). Wymagany zakres: `consents:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "revokeConsent",
+        "responses": {
+          "204": {
+            "description": "Zgoda cofnięta"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/suppressions": {
+      "post": {
+        "tags": [
+          "Wykluczenia"
+        ],
+        "summary": "Dodaj e-mail do listy wykluczeń",
+        "description": "Wyklucza e-mail, aby nie mógł już otrzymywać żadnej poczty. Wymagany zakres: `suppressions:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "addSuppression",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSuppressionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wykluczenie dodane",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppressionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/suppressions/{email}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EmailPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Wykluczenia"
+        ],
+        "summary": "Sprawdź, czy e-mail jest wykluczony",
+        "description": "Wymagany zakres: `suppressions:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "checkSuppression",
+        "responses": {
+          "200": {
+            "description": "Status wykluczenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppressionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Wykluczenia"
+        ],
+        "summary": "Usuń e-mail z listy wykluczeń",
+        "description": "Usunięcie globalnego wypisania jest operacją wrażliwą i nieodwracalną, więc wymaga nagłówka potwierdzenia `X-Confirm-Unsuppress: true`. Wymagany zakres: `suppressions:manage`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "removeSuppression",
+        "parameters": [
+          {
+            "name": "X-Confirm-Unsuppress",
+            "in": "header",
+            "required": true,
+            "description": "Musi być dosłownie łańcuchem `true`, aby potwierdzić usunięcie.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Wykluczenie usunięte"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns": {
+      "get": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Wylistuj kampanie",
+        "description": "Listuje kampanie w projekcie, od najnowszych. Wymagany zakres: `campaigns:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listCampaigns",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane kampanie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCampaignResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Utwórz kampanię",
+        "description": "Tworzy kampanię roboczą. Wymagany zakres: `campaigns:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createCampaign",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCampaignRequest"
+              },
+              "examples": {
+                "draft": {
+                  "value": {
+                    "name": "June Newsletter",
+                    "subject": "Your June update",
+                    "previewText": "What's new this month",
+                    "contentJson": "{\"blocks\":[]}",
+                    "fromEmail": "news@example.com",
+                    "fromName": "Example",
+                    "topicIds": [
+                      "7b9c1f2e-2a1d-4d8a-9b1f-7e6c5d4b3a2f"
+                    ],
+                    "segmentIds": [],
+                    "sendStrategy": "DRAFT"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kampania utworzona",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Pobierz kampanię po kluczu",
+        "description": "Wymagany zakres: `campaigns:read`. Dzierżawa: ograniczone do projektu klucza API; klucz z innego projektu zwraca 404.",
+        "operationId": "getCampaign",
+        "responses": {
+          "200": {
+            "description": "Kampania",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Zaktualizuj kampanię",
+        "description": "Aktualizuje metadane i treść kampanii. Wymagany zakres: `campaigns:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateCampaign",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCampaignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowana kampania",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Usuń kampanię",
+        "description": "Wymagany zakres: `campaigns:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "deleteCampaign",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/schedule": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Zaplanuj kampanię",
+        "description": "Przełącza kampanię w stan `SCHEDULED`. Kampania musi mieć zdefiniowane `scheduledAt`. Wymagany zakres: `campaigns:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "scheduleCampaign",
+        "responses": {
+          "200": {
+            "description": "Kampania zaplanowana",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/send": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Kampanie"
+        ],
+        "summary": "Wyślij kampanię",
+        "description": "Kolejkuje kampanię do natychmiastowej wysyłki (`QUEUED_FOR_SENDING`). Zabezpieczenia przedwysyłkowe platformy mogą odrzucić to przejście. Wymagany zakres: `campaigns:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "sendCampaign",
+        "responses": {
+          "200": {
+            "description": "Kampania w kolejce do wysyłki",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/segments": {
+      "get": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Wylistuj segmenty",
+        "description": "Listuje segmenty w projekcie, od najnowszych. Wymagany zakres: `segments:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listSegments",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane segmenty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSegmentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Utwórz segment",
+        "description": "Wymagany zakres: `segments:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createSegment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSegmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Segment utworzony",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/segments/{segmentId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SegmentIdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Pobierz segment",
+        "description": "Wymagany zakres: `segments:read`. Dzierżawa: ograniczone do projektu klucza API; identyfikator z innego projektu zwraca 404.",
+        "operationId": "getSegment",
+        "responses": {
+          "200": {
+            "description": "Segment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Zaktualizuj segment",
+        "description": "Wymagany zakres: `segments:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateSegment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSegmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowany segment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Usuń segment",
+        "description": "Wymagany zakres: `segments:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "deleteSegment",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/segments/{segmentId}/members": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SegmentIdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Wylistuj członków segmentu",
+        "description": "Wymagany zakres: `segments:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listSegmentMembers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowani członkowie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSegmentMemberResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Dodaj członków do segmentu",
+        "description": "Dodaje subskrybentów (po id) do segmentu statycznego. Wymagany zakres: `segments:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "addSegmentMembers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SegmentMembersRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Członkowie dodani"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Segmenty"
+        ],
+        "summary": "Usuń członków z segmentu",
+        "description": "Usuwa subskrybentów (po id) z segmentu statycznego. Wymagany zakres: `segments:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "removeSegmentMembers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SegmentMembersRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Członkowie usunięci"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/custom-fields": {
+      "get": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Wylistuj aktywne pola niestandardowe",
+        "description": "Listuje aktywne definicje pól niestandardowych w projekcie. Wymagany zakres: `custom_fields:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listCustomFields",
+        "responses": {
+          "200": {
+            "description": "Aktywne pola niestandardowe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomFieldResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Utwórz pole niestandardowe",
+        "description": "Tworzy definicję pola niestandardowego. SELECT i MULTI_SELECT wymagają `options`. Wymagany zakres: `custom_fields:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createCustomField",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomFieldRequest"
+              },
+              "examples": {
+                "text": {
+                  "value": {
+                    "key": "company",
+                    "displayName": "Company",
+                    "type": "TEXT",
+                    "isRequired": false
+                  }
+                },
+                "select": {
+                  "value": {
+                    "key": "plan",
+                    "displayName": "Plan",
+                    "type": "SELECT",
+                    "options": [
+                      {
+                        "value": "free",
+                        "label": "Free"
+                      },
+                      {
+                        "value": "pro",
+                        "label": "Pro"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pole niestandardowe utworzone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CustomFieldKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Pobierz pole niestandardowe po kluczu",
+        "description": "Wymagany zakres: `custom_fields:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getCustomField",
+        "responses": {
+          "200": {
+            "description": "Pole niestandardowe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Zarchiwizuj pole niestandardowe",
+        "description": "Archiwizuje (miękko usuwa) pole niestandardowe. Wymagany zakres: `custom_fields:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "archiveCustomField",
+        "responses": {
+          "204": {
+            "description": "Zarchiwizowano"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}/details": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CustomFieldKeyPath"
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Zaktualizuj szczegóły pola niestandardowego",
+        "description": "Aktualizuje nazwę wyświetlaną, opis i flagę wymagalności. Wymagany zakres: `custom_fields:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateCustomFieldDetails",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomFieldDetailsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowane pole niestandardowe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/custom-fields/{key}/config": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CustomFieldKeyPath"
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Pola niestandardowe"
+        ],
+        "summary": "Zaktualizuj konfigurację pola niestandardowego",
+        "description": "Aktualizuje konfigurację pola (np. opcje SELECT) i wartość domyślną. Wymagany zakres: `custom_fields:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateCustomFieldConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomFieldConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowane pole niestandardowe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations": {
+      "get": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Wylistuj automatyzacje",
+        "description": "Listuje automatyzacje w projekcie, od najnowszych. Wymagany zakres: `automations:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "listAutomations",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane automatyzacje",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAutomationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Utwórz automatyzację",
+        "description": "Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "createAutomation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAutomationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Automatyzacja utworzona",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AutomationIdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Pobierz automatyzację",
+        "description": "Wymagany zakres: `automations:read`. Dzierżawa: ograniczone do projektu klucza API; identyfikator z innego projektu zwraca 404.",
+        "operationId": "getAutomation",
+        "responses": {
+          "200": {
+            "description": "Automatyzacja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Zaktualizuj automatyzację",
+        "description": "Aktualizuje nazwę, opis, wyzwalacz i status. Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateAutomation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAutomationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowana automatyzacja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Usuń automatyzację",
+        "description": "Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "deleteAutomation",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/content": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AutomationIdPath"
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Zaktualizuj treść automatyzacji",
+        "description": "Zastępuje węzły i krawędzie grafu automatyzacji. Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateAutomationContent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAutomationContentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowana automatyzacja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/activate": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AutomationIdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Aktywuj automatyzację",
+        "description": "Przełącza automatyzację w stan `ACTIVE`. Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "activateAutomation",
+        "responses": {
+          "200": {
+            "description": "Automatyzacja aktywowana",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/pause": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AutomationIdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Automatyzacje"
+        ],
+        "summary": "Wstrzymaj automatyzację",
+        "description": "Przełącza automatyzację w stan `PAUSED`. Wymagany zakres: `automations:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "pauseAutomation",
+        "responses": {
+          "200": {
+            "description": "Automatyzacja wstrzymana",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/sending-domain": {
+      "get": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Pobierz domenę wysyłkową projektu",
+        "description": "Każdy projekt ma najwyżej jedną własną domenę wysyłkową. Wymagany zakres: `sending_domains:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getSendingDomain",
+        "responses": {
+          "200": {
+            "description": "Domena wysyłkowa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendingDomainResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Skonfiguruj własną domenę wysyłkową",
+        "description": "Konfiguruje własną domenę wysyłkową dla projektu. Wymagany zakres: `sending_domains:write`. Dzierżawa: tenant pochodzi z kontekstu klucza API, nigdy z treści żądania.",
+        "operationId": "setupSendingDomain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupSendingDomainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Domena wysyłkowa utworzona",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendingDomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Zaktualizuj domenę wysyłkową",
+        "description": "Aktualizuje nazwę własnej domeny wysyłkowej. Wymagany zakres: `sending_domains:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "updateSendingDomain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSendingDomainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowana domena wysyłkowa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendingDomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Usuń własną domenę wysyłkową",
+        "description": "Wymagany zakres: `sending_domains:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "removeSendingDomain",
+        "responses": {
+          "204": {
+            "description": "Usunięto"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/sending-domain/dns-instructions": {
+      "get": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Pobierz instrukcje konfiguracji DNS",
+        "description": "Zwraca rekordy DNS, które należy dodać, aby zweryfikować domenę. Wymagany zakres: `sending_domains:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getDnsInstructions",
+        "responses": {
+          "200": {
+            "description": "Instrukcje konfiguracji DNS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DnsInstructionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/sending-domain/verify-dns": {
+      "post": {
+        "tags": [
+          "Domena wysyłkowa"
+        ],
+        "summary": "Zweryfikuj rekordy DNS domeny",
+        "description": "Uruchamia sprawdzenie weryfikacji DNS i zwraca wynikowy status. Wymagany zakres: `sending_domains:write`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "verifyDns",
+        "responses": {
+          "200": {
+            "description": "Wynik weryfikacji",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainVerificationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Raporty kampanii"
+        ],
+        "summary": "Pobierz raport kampanii",
+        "description": "Zwraca wygenerowany raport AI i jego treść dla kampanii. Wymagany zakres: `reports:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getCampaignReport",
+        "responses": {
+          "200": {
+            "description": "Raport kampanii",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignReportResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/statistics": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Raporty kampanii"
+        ],
+        "summary": "Pobierz statystyki kampanii na żywo",
+        "description": "Zwraca statystyki dostarczalności i zaangażowania na żywo. Wymagany zakres: `reports:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getCampaignStatistics",
+        "responses": {
+          "200": {
+            "description": "Statystyki",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignStatisticsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/timeline": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Raporty kampanii"
+        ],
+        "summary": "Pobierz oś czasu statystyk",
+        "description": "Zwraca szereg czasowy liczby dostarczeń i zaangażowania. Wymagany zakres: `reports:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getCampaignTimeline",
+        "responses": {
+          "200": {
+            "description": "Punkty osi czasu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeSeriesPointResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaignKey}/report/export": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CampaignKeyPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Raporty kampanii"
+        ],
+        "summary": "Wyeksportuj statystyki jako CSV",
+        "description": "Zwraca statystyki kampanii jako plik CSV. Wymagany zakres: `reports:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "exportCampaignCsv",
+        "responses": {
+          "200": {
+            "description": "Eksport CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "tags": [
+          "Rozliczenia"
+        ],
+        "summary": "Pobierz subskrypcję konta",
+        "description": "Zwraca subskrypcję dla konta, do którego należy tenant tego klucza. Wymagany zakres: `billing:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getSubscription",
+        "responses": {
+          "200": {
+            "description": "Subskrypcja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/plans": {
+      "get": {
+        "tags": [
+          "Rozliczenia"
+        ],
+        "summary": "Wylistuj dostępne plany",
+        "description": "Zwraca plany dostępne dla konta. Wymagany zakres: `billing:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getPlans",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "description": "Kod waluty ISO używany do wyceny wariantów planu.",
+            "schema": {
+              "type": "string",
+              "example": "USD"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plany",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/invoices": {
+      "get": {
+        "tags": [
+          "Rozliczenia"
+        ],
+        "summary": "Wylistuj faktury",
+        "description": "Zwraca faktury konta, stronicowane. Wymagany zakres: `billing:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getInvoices",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane faktury",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedInvoiceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/usage": {
+      "get": {
+        "tags": [
+          "Rozliczenia"
+        ],
+        "summary": "Pobierz podsumowanie zużycia",
+        "description": "Zwraca bieżące zużycie względem limitów planu. Wymagany zakres: `billing:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getUsageSummary",
+        "responses": {
+          "200": {
+            "description": "Podsumowanie zużycia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageSummaryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/credits/balance": {
+      "get": {
+        "tags": [
+          "Kredyty AI"
+        ],
+        "summary": "Pobierz saldo kredytów AI",
+        "description": "Wymagany zakres: `credits:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getCreditBalance",
+        "responses": {
+          "200": {
+            "description": "Saldo kredytów",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalanceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/credits/transactions": {
+      "get": {
+        "tags": [
+          "Kredyty AI"
+        ],
+        "summary": "Wylistuj transakcje kredytów AI",
+        "description": "Zwraca transakcje kredytowe konta, stronicowane. Wymagany zakres: `credits:read`. Dzierżawa: rozwiązywane z tenanta klucza API do jego organizacji.",
+        "operationId": "getCreditTransactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageParam"
+          },
+          {
+            "$ref": "#/components/parameters/SizeParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stronicowane transakcje",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCreditTransactionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v1/project": {
+      "get": {
+        "tags": [
+          "Projekt"
+        ],
+        "summary": "Pobierz bieżący projekt",
+        "description": "Zwraca projekt, do którego przypisany jest klucz API. Tworzenie i usuwanie projektów nie jest udostępniane przez publiczne API. Wymagany zakres: `projects:read`. Dzierżawa: ograniczone do projektu klucza API.",
+        "operationId": "getCurrentProject",
+        "responses": {
+          "200": {
+            "description": "Projekt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Project-scoped API key, format rm_(live|test)_... . May also be sent as `Authorization: Bearer rm_...`."
+      }
+    },
+    "parameters": {
+      "PageParam": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "description": "Zero-based page index.",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "SizeParam": {
+        "name": "size",
+        "in": "query",
+        "required": false,
+        "description": "Page size, clamped to a maximum of 100.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "EmailPath": {
+        "name": "email",
+        "in": "path",
+        "required": true,
+        "description": "URL-encoded subscriber email.",
+        "schema": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "TopicKeyPath": {
+        "name": "topicKey",
+        "in": "path",
+        "required": true,
+        "description": "Topic key.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CampaignKeyPath": {
+        "name": "campaignKey",
+        "in": "path",
+        "required": true,
+        "description": "Campaign key (e.g. APIT-001).",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SegmentIdPath": {
+        "name": "segmentId",
+        "in": "path",
+        "required": true,
+        "description": "Segment id (UUID).",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "AutomationIdPath": {
+        "name": "automationId",
+        "in": "path",
+        "required": true,
+        "description": "Automation id (UUID).",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "CustomFieldKeyPath": {
+        "name": "key",
+        "in": "path",
+        "required": true,
+        "description": "Custom field key.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Malformed request or invalid field values.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The API key lacks the required scope.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The resource does not exist in this project.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The request conflicts with the current state of the resource.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "The request body failed domain validation.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Rate limit exceeded.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait before retrying.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Limit": {
+            "description": "Requests allowed per minute.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Remaining": {
+            "description": "Requests remaining in the window.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Reset": {
+            "description": "Epoch seconds when the window resets.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Unexpected server error.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ProblemDetail": {
+        "type": "object",
+        "description": "RFC 7807 problem details.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Błędy walidacji per pole, obecne przy 400/422."
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status"
+        ]
+      },
+      "PaginationMetadata": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrevious": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "page",
+          "size",
+          "totalElements",
+          "totalPages",
+          "hasNext",
+          "hasPrevious"
+        ]
+      },
+      "ConsentInfo": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "formVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "CreateSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "topicKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "consent": {
+            "$ref": "#/components/schemas/ConsentInfo"
+          },
+          "customFields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "required": [
+          "email",
+          "topicKeys",
+          "consent"
+        ]
+      },
+      "UpdateSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "customFields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "SubscriberResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedSubscriberResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriberResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "CreateTopicRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "ARCHIVED"
+            ],
+            "nullable": true
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "URGENT",
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ],
+            "nullable": true
+          },
+          "doubleOptInEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateTopicRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "ARCHIVED"
+            ],
+            "nullable": true
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "URGENT",
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ],
+            "nullable": true
+          },
+          "doubleOptInEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TopicResponse": {
+        "type": "object",
+        "properties": {
+          "topicKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "doubleOptInEnabled": {
+            "type": "boolean"
+          },
+          "subscriberCount": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "activeSubscriberCount": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedTopicResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopicResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "GrantConsentRequest": {
+        "type": "object",
+        "properties": {
+          "topicKey": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "formVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "topicKey",
+          "source"
+        ]
+      },
+      "ConsentResponse": {
+        "type": "object",
+        "description": "When requiresConfirmation is true, the topic uses double opt-in and the subscriber must confirm via email before they are subscribed.",
+        "properties": {
+          "topicKey": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "np. SUBSCRIBED, PENDING_CONFIRMATION, UNSUBSCRIBED."
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "confirmedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "tokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ConsentPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "globallySuppressed": {
+            "type": "boolean"
+          },
+          "consents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "topicKey": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "topicName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "grantedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "confirmedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "revokedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateSuppressionRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "GLOBAL_UNSUBSCRIBE",
+              "SPAM_COMPLAINT",
+              "HARD_BOUNCE"
+            ],
+            "nullable": true
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "SuppressionResponse": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "suppressed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "suppressedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "previewText": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentJson": {
+            "type": "string",
+            "nullable": true,
+            "description": "Treść sformatowana jako łańcuch JSON."
+          },
+          "contentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromName": {
+            "type": "string",
+            "nullable": true
+          },
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "segmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "sendStrategy": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "IMMEDIATE",
+              "SCHEDULED"
+            ],
+            "nullable": true
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "subject"
+        ]
+      },
+      "UpdateCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "previewText": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentJson": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromName": {
+            "type": "string",
+            "nullable": true
+          },
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "segmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "sendStrategy": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "IMMEDIATE",
+              "SCHEDULED"
+            ],
+            "nullable": true
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CampaignResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "campaignKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string",
+            "nullable": true
+          },
+          "previewText": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentJson": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "sendStrategy": {
+            "type": "string",
+            "nullable": true
+          },
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "segmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "estimatedRecipientCount": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fromEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromName": {
+            "type": "string",
+            "nullable": true
+          },
+          "preSendScore": {
+            "type": "integer",
+            "nullable": true
+          },
+          "preSendStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedCampaignResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CampaignResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "CreateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "STATIC",
+              "DYNAMIC"
+            ],
+            "nullable": true
+          },
+          "rules": {
+            "type": "string",
+            "nullable": true,
+            "description": "Definicja reguł JSON dla segmentów DYNAMIC."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "ARCHIVED"
+            ],
+            "nullable": true
+          },
+          "rules": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SegmentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "segmentKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string"
+          },
+          "rules": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedSegmentResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "SegmentMembersRequest": {
+        "type": "object",
+        "properties": {
+          "subscriberIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "subscriberIds"
+        ]
+      },
+      "SegmentMemberResponse": {
+        "type": "object",
+        "properties": {
+          "subscriberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedSegmentMemberResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentMemberResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "SelectOptionPayload": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "CreateCustomFieldRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "LONG_TEXT",
+              "NUMBER",
+              "DECIMAL",
+              "BOOLEAN",
+              "DATE",
+              "DATETIME",
+              "EMAIL",
+              "URL",
+              "PHONE",
+              "SELECT",
+              "MULTI_SELECT"
+            ]
+          },
+          "isRequired": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "defaultValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectOptionPayload"
+            },
+            "nullable": true,
+            "description": "Wymagane dla SELECT i MULTI_SELECT."
+          }
+        },
+        "required": [
+          "key",
+          "displayName",
+          "type"
+        ]
+      },
+      "UpdateCustomFieldDetailsRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateCustomFieldConfigRequest": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectOptionPayload"
+            },
+            "nullable": true
+          },
+          "defaultValue": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CustomFieldResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isSystem": {
+            "type": "boolean"
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
+          "defaultValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateAutomationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "triggerType": {
+            "type": "string",
+            "enum": [
+              "subscriber_joins_list",
+              "segment_entered",
+              "segment_left",
+              "custom_event",
+              "manual"
+            ],
+            "nullable": true
+          },
+          "triggerTopicId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateAutomationRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "PAUSED",
+              "ARCHIVED"
+            ],
+            "nullable": true
+          },
+          "triggerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "triggerTopicId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateAutomationContentRequest": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Węzły grafu automatyzacji jako łańcuch JSON."
+          },
+          "edges": {
+            "type": "string",
+            "nullable": true,
+            "description": "Krawędzie grafu automatyzacji jako łańcuch JSON."
+          }
+        }
+      },
+      "AutomationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "automationKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "triggerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "triggerTopicId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "triggerTopicName": {
+            "type": "string",
+            "nullable": true
+          },
+          "nodeCount": {
+            "type": "integer",
+            "nullable": true
+          },
+          "totalEntered": {
+            "type": "integer",
+            "nullable": true
+          },
+          "totalCompleted": {
+            "type": "integer",
+            "nullable": true
+          },
+          "currentlyActive": {
+            "type": "integer",
+            "nullable": true
+          },
+          "nodes": {
+            "type": "string",
+            "nullable": true
+          },
+          "edges": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedAutomationResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AutomationResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "SetupSendingDomainRequest": {
+        "type": "object",
+        "properties": {
+          "domainName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "domainName"
+        ]
+      },
+      "UpdateSendingDomainRequest": {
+        "type": "object",
+        "properties": {
+          "domainName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "domainName"
+        ]
+      },
+      "DnsRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "recordType": {
+            "type": "string",
+            "nullable": true
+          },
+          "host": {
+            "type": "string",
+            "nullable": true
+          },
+          "expectedValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "actualValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SendingDomainResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "domainName": {
+            "type": "string",
+            "nullable": true
+          },
+          "domainType": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "healthScore": {
+            "type": "integer",
+            "nullable": true
+          },
+          "projectId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "dnsRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnsRecordResponse"
+            }
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastHealthCheckAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "suspensionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "verificationAttempts": {
+            "type": "integer"
+          },
+          "sendingAllowed": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "DnsInstructionsResponse": {
+        "type": "object",
+        "properties": {
+          "domainName": {
+            "type": "string",
+            "nullable": true
+          },
+          "requiredRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnsRecordResponse"
+            }
+          },
+          "instructionsText": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DomainVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "resultingStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "healthScore": {
+            "type": "integer",
+            "nullable": true
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnsRecordResponse"
+            }
+          },
+          "allVerified": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CampaignReportResponse": {
+        "type": "object",
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
+          },
+          "aiModelId": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "integer"
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CampaignStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalSent": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalDelivered": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalBounced": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hardBounced": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "softBounced": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalOpened": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "uniqueOpens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalClicked": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "uniqueClicks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalUnsubscribed": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "spamComplaints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "deliveryRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "openRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "clickThroughRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "clickToOpenRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "unsubscribeRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "bounceRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "engagementScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "collectedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TimeSeriesPointResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sent": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "delivered": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "opened": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "clicked": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bounced": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PlanLimitsResponse": {
+        "type": "object",
+        "properties": {
+          "maxSubscribers": {
+            "type": "integer"
+          },
+          "maxCampaignsPerMonth": {
+            "type": "integer"
+          },
+          "maxProjects": {
+            "type": "integer"
+          },
+          "maxAiRequestsPerMonth": {
+            "type": "integer"
+          },
+          "maxUsers": {
+            "type": "integer"
+          },
+          "maxEmailsPerMonth": {
+            "type": "integer"
+          },
+          "customFieldsEnabled": {
+            "type": "boolean"
+          },
+          "automationsEnabled": {
+            "type": "boolean"
+          },
+          "advancedSegmentsEnabled": {
+            "type": "boolean"
+          },
+          "customDomainEnabled": {
+            "type": "boolean"
+          },
+          "apiAccessEnabled": {
+            "type": "boolean"
+          },
+          "prioritySupport": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SubscriptionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "planTier": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingInterval": {
+            "type": "string",
+            "nullable": true
+          },
+          "aiCreditsTier": {
+            "type": "integer",
+            "nullable": true
+          },
+          "pendingPlanTier": {
+            "type": "string",
+            "nullable": true
+          },
+          "pendingAiCreditsTier": {
+            "type": "integer",
+            "nullable": true
+          },
+          "pendingPlanEffectiveAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "currentPeriodStart": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "currentPeriodEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancellationReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelAtPeriodEnd": {
+            "type": "boolean"
+          },
+          "isSendingAllowed": {
+            "type": "boolean"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/PlanLimitsResponse"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PlanVariantResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "aiCredits": {
+            "type": "integer"
+          },
+          "monthlyPriceCents": {
+            "type": "integer"
+          },
+          "yearlyPriceCents": {
+            "type": "integer"
+          },
+          "baseCurrency": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PlanResponse": {
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "limits": {
+            "$ref": "#/components/schemas/PlanLimitsResponse"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanVariantResponse"
+            }
+          },
+          "isCurrent": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "amountCents": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoiceUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaginatedInvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "UsageSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "subscribersCurrent": {
+            "type": "integer"
+          },
+          "subscribersLimit": {
+            "type": "integer"
+          },
+          "subscribersPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "campaignsCurrentMonth": {
+            "type": "integer"
+          },
+          "campaignsLimit": {
+            "type": "integer"
+          },
+          "campaignsPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectsCurrent": {
+            "type": "integer"
+          },
+          "projectsLimit": {
+            "type": "integer"
+          },
+          "aiCreditsCurrentMonth": {
+            "type": "number"
+          },
+          "aiCreditsLimit": {
+            "type": "integer"
+          },
+          "aiCreditsPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "emailsCurrentMonth": {
+            "type": "integer"
+          },
+          "emailsLimit": {
+            "type": "integer"
+          },
+          "emailsPercent": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CreditBalanceResponse": {
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "number"
+          },
+          "creditsDepleted": {
+            "type": "boolean"
+          },
+          "lastUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number"
+          },
+          "balanceAfter": {
+            "type": "number"
+          },
+          "referenceId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginatedCreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditTransactionResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetadata"
+          }
+        }
+      },
+      "ProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "projectKey": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "selected": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "aiSegmentSuggestionsEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

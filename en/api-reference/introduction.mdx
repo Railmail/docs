@@ -1,0 +1,68 @@
+---
+title: "Introduction"
+description: "REST API for managing the Railmail email marketing platform programmatically."
+---
+
+The Railmail Public API lets you manage subscribers, topics, consents, campaigns, segments, automations and more — programmatically. It is a REST API that speaks JSON, uses standard HTTP verbs, and returns conventional status codes.
+
+## Base URL
+
+All endpoints are served from a single base URL:
+
+```
+https://api.railmail.app
+```
+
+Every path in this reference is relative to that base and prefixed with `/api/v1`. For example, listing subscribers is `GET https://api.railmail.app/api/v1/subscribers`.
+
+## Authentication in one line
+
+Every request must carry a project-scoped API key in the `X-API-Key` header:
+
+```bash
+curl https://api.railmail.app/api/v1/subscribers \
+  -H "X-API-Key: rm_live_your_key_here"
+```
+
+See [Authentication](/en/api-reference/authentication) for key formats, scopes and the `Authorization: Bearer` alternative.
+
+## Project isolation
+
+A key resolves to exactly one **project**. All reads and writes are automatically isolated to that project and its tenant — a key can never read or modify another project's data. You do not pass a project or tenant identifier; the key determines it.
+
+## Conventions
+
+<CardGroup cols={2}>
+  <Card title="JSON everywhere" icon="brackets-curly">
+    Request and response bodies are `application/json`. Errors use `application/problem+json` ([RFC 7807](/en/api-reference/errors)).
+  </Card>
+  <Card title="Standard verbs" icon="arrows-turn-right">
+    `GET` reads, `POST` creates, `PATCH` updates, `DELETE` removes. Verbs behave as you'd expect.
+  </Card>
+  <Card title="Scoped keys" icon="key">
+    Each operation requires a specific scope, listed in its description. A missing scope returns `403`.
+  </Card>
+  <Card title="Rate limited" icon="gauge-high">
+    60 requests per minute per key. See [Rate limits](/en/api-reference/rate-limits).
+  </Card>
+</CardGroup>
+
+## Canonical flow: add your users to your topics
+
+A common first integration — subscribe your users to a topic:
+
+<Steps>
+  <Step title="Discover topic keys">
+    Call `GET /api/v1/topics` to list the topics in your project and read their `topicKey` values.
+  </Step>
+  <Step title="Create and subscribe in one call">
+    Call `POST /api/v1/subscribers` with `topicKeys` + `consent` to create a subscriber and subscribe them at once — or `POST /api/v1/subscribers/{email}/consents` to subscribe an existing subscriber.
+  </Step>
+  <Step title="Handle double opt-in">
+    If a topic uses double opt-in, the consent is created `PENDING_CONFIRMATION`. The subscriber must confirm via the email they receive before they count as subscribed.
+  </Step>
+</Steps>
+
+## Test the endpoints
+
+Every endpoint page in this reference includes an interactive playground. Enter your API key once and send real requests straight from the docs.

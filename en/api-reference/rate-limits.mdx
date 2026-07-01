@@ -1,0 +1,46 @@
+---
+title: "Rate limits"
+description: "Requests are limited to 60 per minute per API key."
+---
+
+Railmail limits requests to **60 per minute per API key**. The limit is applied per key, so separate keys have separate budgets.
+
+## Rate limit headers
+
+Every response includes headers describing your current budget:
+
+| Header | Description |
+| --- | --- |
+| `X-RateLimit-Limit` | The maximum number of requests allowed per window (60). |
+| `X-RateLimit-Remaining` | The number of requests remaining in the current window. |
+| `X-RateLimit-Reset` | When the current window resets, so you know when `Remaining` refills. |
+
+Read these headers to pace your requests before you hit the limit.
+
+## When you exceed the limit
+
+Once you exceed the limit, the API returns `429 Too Many Requests` with a `Retry-After` header telling you how many seconds to wait before retrying:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+Content-Type: application/problem+json
+```
+
+## Handling limits gracefully
+
+<Steps>
+  <Step title="Watch X-RateLimit-Remaining">
+    Slow down as `Remaining` approaches zero rather than sending requests until you're rejected.
+  </Step>
+  <Step title="Respect Retry-After on 429">
+    When you get a `429`, wait the number of seconds in `Retry-After` before retrying — don't retry immediately.
+  </Step>
+  <Step title="Back off on repeated 429s">
+    If you keep hitting the limit, add exponential backoff and consider batching work or spreading it over time.
+  </Step>
+</Steps>
+
+<Tip>
+  For bulk work like importing many subscribers, add a small delay between requests to stay comfortably under 60/minute instead of bursting and getting throttled.
+</Tip>
