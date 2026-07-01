@@ -34,7 +34,7 @@ Content-Type: application/problem+json
     Zwalniaj, gdy `Remaining` zbliża się do zera, zamiast wysyłać zapytania aż do odrzucenia.
   </Step>
   <Step title="Respektuj Retry-After przy 429">
-    Gdy otrzymasz `429`, odczekaj liczbę sekund z `Retry-After` przed ponowieniem — nie ponawiaj natychmiast.
+    Gdy otrzymasz `429`, odczekaj liczbę sekund z `Retry-After` przed ponowieniem; nie ponawiaj natychmiast.
   </Step>
   <Step title="Stosuj backoff przy powtarzających się 429">
     Jeśli wciąż osiągasz limit, dodaj wykładniczy backoff i rozważ grupowanie pracy lub rozłożenie jej w czasie.

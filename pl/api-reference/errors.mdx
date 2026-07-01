@@ -31,7 +31,7 @@ Wszystkie błędy używają [RFC 7807](https://datatracker.ietf.org/doc/html/rfc
 | `detail` | Czytelne wyjaśnienie właściwe dla tego wystąpienia. |
 | `instance` | Odniesienie URI do konkretnego zapytania, które zawiodło. |
 | `timestamp` | Kiedy wystąpił błąd (ISO 8601). |
-| `errors` | Obecne przy błędach walidacji — mapa nazwy pola na komunikat. |
+| `errors` | Obecne przy błędach walidacji: mapa nazwy pola na komunikat. |
 
 ## Najczęstsze kody statusu
 
@@ -47,5 +47,5 @@ Wszystkie błędy używają [RFC 7807](https://datatracker.ietf.org/doc/html/rfc
 | `5xx` | Błąd serwera | Ponów z wykładniczym opóźnieniem. Jeśli się powtarza, skontaktuj się z pomocą. |
 
 <Tip>
-  Zawsze czytaj pola `title` i `detail` — wyjaśniają, co poszło nie tak, znacznie lepiej niż sam kod statusu. Dla odpowiedzi `400` mapa `errors` wskazuje dokładnie, które pola poprawić.
+  Zawsze czytaj pola `title` i `detail`; wyjaśniają, co poszło nie tak, znacznie lepiej niż sam kod statusu. Dla odpowiedzi `400` mapa `errors` wskazuje dokładnie, które pola poprawić.
 </Tip>

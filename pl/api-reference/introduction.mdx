@@ -28,7 +28,7 @@ Zobacz [Uwierzytelnianie](/pl/api-reference/authentication), aby poznać formaty
 
 ## Izolacja projektu
 
-Klucz odpowiada dokładnie jednemu **projektowi**. Wszystkie odczyty i zapisy są automatycznie izolowane do tego projektu i jego tenanta — klucz nigdy nie odczyta ani nie zmodyfikuje danych innego projektu. Nie przekazujesz identyfikatora projektu ani tenanta; określa je klucz.
+Klucz odpowiada dokładnie jednemu **projektowi**. Wszystkie odczyty i zapisy są automatycznie izolowane do tego projektu i jego tenanta: klucz nigdy nie odczyta ani nie zmodyfikuje danych innego projektu. Nie przekazujesz identyfikatora projektu ani tenanta; określa je klucz.
 
 ## Konwencje
 
@@ -49,14 +49,14 @@ Klucz odpowiada dokładnie jednemu **projektowi**. Wszystkie odczyty i zapisy s�
 
 ## Typowy przepływ: dodaj użytkowników do swoich tematów
 
-Częsta pierwsza integracja — zapisz użytkowników do tematu:
+Częsta pierwsza integracja, czyli zapisanie użytkowników do tematu:
 
 <Steps>
   <Step title="Sprawdź klucze tematów">
     Wywołaj `GET /api/v1/topics`, aby wylistować tematy w projekcie i odczytać ich wartości `topicKey`.
   </Step>
   <Step title="Utwórz i zapisz w jednym wywołaniu">
-    Wywołaj `POST /api/v1/subscribers` z `topicKeys` + `consent`, aby utworzyć subskrybenta i od razu go zapisać — albo `POST /api/v1/subscribers/{email}/consents`, aby zapisać istniejącego subskrybenta.
+    Wywołaj `POST /api/v1/subscribers` z `topicKeys` + `consent`, aby utworzyć subskrybenta i od razu go zapisać, albo `POST /api/v1/subscribers/{email}/consents`, aby zapisać istniejącego subskrybenta.
   </Step>
   <Step title="Obsłuż double opt-in">
     Jeśli temat korzysta z double opt-in, zgoda jest tworzona jako `PENDING_CONFIRMATION`. Subskrybent musi ją potwierdzić przez otrzymaną wiadomość, zanim zostanie policzony jako zapisany.

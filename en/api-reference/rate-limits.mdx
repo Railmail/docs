@@ -34,7 +34,7 @@ Content-Type: application/problem+json
     Slow down as `Remaining` approaches zero rather than sending requests until you're rejected.
   </Step>
   <Step title="Respect Retry-After on 429">
-    When you get a `429`, wait the number of seconds in `Retry-After` before retrying — don't retry immediately.
+    When you get a `429`, wait the number of seconds in `Retry-After` before retrying; don't retry immediately.
   </Step>
   <Step title="Back off on repeated 429s">
     If you keep hitting the limit, add exponential backoff and consider batching work or spreading it over time.

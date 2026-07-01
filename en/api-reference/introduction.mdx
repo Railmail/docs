@@ -3,7 +3,7 @@ title: "Introduction"
 description: "REST API for managing the Railmail email marketing platform programmatically."
 ---
 
-The Railmail Public API lets you manage subscribers, topics, consents, campaigns, segments, automations and more — programmatically. It is a REST API that speaks JSON, uses standard HTTP verbs, and returns conventional status codes.
+The Railmail Public API lets you manage subscribers, topics, consents, campaigns, segments, automations and more, all programmatically. It is a REST API that speaks JSON, uses standard HTTP verbs, and returns conventional status codes.
 
 ## Base URL
 
@@ -28,7 +28,7 @@ See [Authentication](/en/api-reference/authentication) for key formats, scopes a
 
 ## Project isolation
 
-A key resolves to exactly one **project**. All reads and writes are automatically isolated to that project and its tenant — a key can never read or modify another project's data. You do not pass a project or tenant identifier; the key determines it.
+A key resolves to exactly one **project**. All reads and writes are automatically isolated to that project and its tenant: a key can never read or modify another project's data. You do not pass a project or tenant identifier; the key determines it.
 
 ## Conventions
 
@@ -49,14 +49,14 @@ A key resolves to exactly one **project**. All reads and writes are automaticall
 
 ## Canonical flow: add your users to your topics
 
-A common first integration — subscribe your users to a topic:
+A common first integration, subscribing your users to a topic:
 
 <Steps>
   <Step title="Discover topic keys">
     Call `GET /api/v1/topics` to list the topics in your project and read their `topicKey` values.
   </Step>
   <Step title="Create and subscribe in one call">
-    Call `POST /api/v1/subscribers` with `topicKeys` + `consent` to create a subscriber and subscribe them at once — or `POST /api/v1/subscribers/{email}/consents` to subscribe an existing subscriber.
+    Call `POST /api/v1/subscribers` with `topicKeys` + `consent` to create a subscriber and subscribe them at once, or `POST /api/v1/subscribers/{email}/consents` to subscribe an existing subscriber.
   </Step>
   <Step title="Handle double opt-in">
     If a topic uses double opt-in, the consent is created `PENDING_CONFIRMATION`. The subscriber must confirm via the email they receive before they count as subscribed.
