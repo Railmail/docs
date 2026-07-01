@@ -27,6 +27,7 @@
                 "group": "User Guide",
                 "pages": [
                   "en/guide/getting-started",
+                  "en/guide/building-with-ai",
                   "en/guide/subscribers",
                   "en/guide/topics",
                   "en/guide/segments",
@@ -80,6 +81,7 @@
                 "group": "Przewodnik użytkownika",
                 "pages": [
                   "pl/guide/getting-started",
+                  "pl/guide/building-with-ai",
                   "pl/guide/subscribers",
                   "pl/guide/topics",
                   "pl/guide/segments",

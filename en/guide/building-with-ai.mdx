@@ -1,0 +1,72 @@
+---
+title: "Building with AI"
+description: "Create campaigns, automations and segments by describing what you want in chat."
+---
+
+In Railmail you don't have to build everything by hand. The **AI assistant** lets you create campaigns, automations and segments by *describing* what you want — it asks questions, generates the result, and you refine it in conversation. This page explains how that conversation works everywhere in the app.
+
+<Note>
+  Every builder has a mode switch in its header. Toggle between **Editor** (build by hand) and **Chat** (build with AI) at any time — you keep your work either way. Automations also have an **Executions** view.
+</Note>
+
+## How the conversation works
+
+The chat is the same across campaigns, automations and segments:
+
+<Steps>
+  <Step title="Start in Chat mode">
+    Open a builder and switch to **Chat**. The assistant greets you and shows a few **goal tiles** to click — or you can just type what you want in your own words.
+  </Step>
+  <Step title="Describe your goal">
+    Tell the assistant what you're trying to do, in plain language (for example, *"a weekly newsletter for engaged subscribers"* or *"when someone joins the Onboarding topic, send a welcome email after one day"*). The assistant may ask follow-up questions.
+  </Step>
+  <Step title="Watch it build">
+    As the assistant works, it streams its progress ("Generating email content…", "Updating segment…") and fills in the panel next to the chat — the email preview, the flow canvas, or the segment rules — live.
+  </Step>
+  <Step title="Refine it">
+    Adjust by replying in natural language ("make the subject shorter", "add a 3-day delay", "target only subscribers from the last 30 days"). There are no buttons to press — you steer by talking.
+  </Step>
+  <Step title="Save">
+    When it looks right, click **Save** in the builder header. Campaigns then run through the [pre-send analysis](/en/guide/campaigns#pre-send-analysis) before sending.
+  </Step>
+</Steps>
+
+## Ways to steer the assistant
+
+You interact with the assistant in four ways — there are no slash commands:
+
+- **Goal tiles** — click a suggested starting point, or press keys **1–9** to pick one.
+- **Quick actions** — shortcut prompt buttons above the input (for example *Change subject*, *Edit content*, *Add condition*, *Summarize*), tailored to what you're building.
+- **Plain text** — just type. "Regenerate the subject", "remove that step" and "change the type to dynamic" all work as normal messages.
+- **Edit the panel directly** — the panel beside the chat (preview, canvas or rule builder) is editable by hand too. Chat and manual edits stay in sync.
+
+### Mention an agent with `@`
+
+Type `@` in the chat to bring in one of your [AI agents](/en/guide/agents) — the personas you define for your project. Pick one from the list to have the assistant respond in that agent's tone and knowledge. This is the only way to add extra context by mention; other context (your topics, segments and custom fields) is available to the assistant automatically, so you can refer to them in plain language.
+
+## What you can build in chat
+
+<CardGroup cols={2}>
+  <Card title="Campaigns" icon="envelope" href="/en/guide/campaigns">
+    Pick a goal — **Newsletter, Product update, Promotion or Win-back** — and the assistant drafts the content, subject line options and preview text into a live email preview.
+  </Card>
+  <Card title="Automations" icon="bolt" href="/en/guide/automations">
+    Describe a workflow (or start from a template like **Welcome sequence**) and the assistant builds the flow graph on the canvas for you to review and edit.
+  </Card>
+  <Card title="Segments" icon="users" href="/en/guide/segments">
+    Describe the audience you want to target and the assistant builds the segment **rules**, which appear in the rule builder as you talk.
+  </Card>
+  <Card title="Onboarding" icon="wand-magic-sparkles" href="/en/guide/getting-started">
+    During onboarding, describe your business (a URL or a sentence) and AI generates a starter set of topics, segments, automations and templates.
+  </Card>
+</CardGroup>
+
+## AI credits and connection
+
+- The assistant runs on [AI credits](/en/guide/ai-credits). A credits indicator shows how many you've used, and each AI turn shows its cost. If you see **"AI credits depleted — upgrade your plan to continue using AI"**, top up or upgrade.
+- The chat connects in real time. If the connection drops you'll see **"AI connection lost — your progress is saved"** with a **Retry** button; nothing you've built is lost.
+- Press **Enter** to send, **Shift+Enter** for a new line.
+
+<Tip>
+  Prefer precision over hand-building, or hand-building over precision? You don't have to choose. Start in **Chat** to get 80% there fast, then switch to the **Editor** to fine-tune — or the other way around.
+</Tip>

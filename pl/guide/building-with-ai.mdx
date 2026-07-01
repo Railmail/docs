@@ -1,0 +1,72 @@
+---
+title: "Tworzenie z pomocą AI"
+description: "Twórz kampanie, automatyzacje i segmenty, opisując na czacie, czego chcesz."
+---
+
+W Railmail nie musisz budować wszystkiego ręcznie. **Asystent AI** pozwala tworzyć kampanie, automatyzacje i segmenty przez *opisanie* tego, czego chcesz — zadaje pytania, generuje wynik, a Ty dopracowujesz go w rozmowie. Ta strona wyjaśnia, jak ta rozmowa działa w całej aplikacji.
+
+<Note>
+  Każdy builder ma w nagłówku przełącznik trybu. Przełączaj się między **Edytorem** (budowanie ręczne) a **Czatem** (budowanie z AI) w dowolnym momencie — w obu przypadkach zachowujesz swoją pracę. Automatyzacje mają dodatkowo widok **Przebiegi**.
+</Note>
+
+## Jak działa rozmowa
+
+Czat jest taki sam w kampaniach, automatyzacjach i segmentach:
+
+<Steps>
+  <Step title="Zacznij w trybie Czat">
+    Otwórz builder i przełącz na **Czat**. Asystent Cię przywita i pokaże kilka **kafelków celu** do kliknięcia — albo po prostu wpisz własnymi słowami, czego chcesz.
+  </Step>
+  <Step title="Opisz cel">
+    Powiedz asystentowi, co chcesz osiągnąć, zwykłym językiem (na przykład *„cotygodniowy newsletter dla zaangażowanych subskrybentów"* lub *„gdy ktoś dołączy do tematu Onboarding, wyślij wiadomość powitalną po jednym dniu"*). Asystent może dopytać.
+  </Step>
+  <Step title="Obserwuj, jak buduje">
+    W trakcie pracy asystent streamuje postępy („Generowanie treści e-maila…", „Aktualizowanie segmentu…") i wypełnia panel obok czatu — podgląd e-maila, kanwę przepływu lub reguły segmentu — na żywo.
+  </Step>
+  <Step title="Dopracuj">
+    Poprawiaj, odpowiadając naturalnym językiem („skróć temat", „dodaj 3-dniowe opóźnienie", „celuj tylko w subskrybentów z ostatnich 30 dni"). Nie ma przycisków do klikania — sterujesz rozmową.
+  </Step>
+  <Step title="Zapisz">
+    Gdy wygląda dobrze, kliknij **Zapisz** w nagłówku buildera. Kampanie przechodzą wtedy przez [analizę przedwysyłkową](/pl/guide/campaigns#analiza-przedwysylkowa) przed wysłaniem.
+  </Step>
+</Steps>
+
+## Sposoby sterowania asystentem
+
+Z asystentem wchodzisz w interakcję na cztery sposoby — nie ma poleceń ze slashem:
+
+- **Kafelki celu** — kliknij sugerowany punkt startu lub wybierz go klawiszami **1–9**.
+- **Szybkie akcje** — przyciski-skróty z gotowymi promptami nad polem tekstowym (na przykład *Zmień temat*, *Edytuj treść*, *Dodaj warunek*, *Podsumuj*), dopasowane do tego, co budujesz.
+- **Zwykły tekst** — po prostu pisz. „Wygeneruj temat ponownie", „usuń ten krok" i „zmień typ na dynamiczny" działają jako normalne wiadomości.
+- **Edycja panelu wprost** — panel obok czatu (podgląd, kanwa lub kreator reguł) jest też edytowalny ręcznie. Czat i edycje ręczne pozostają zsynchronizowane.
+
+### Przywołaj agenta przez `@`
+
+Wpisz `@` na czacie, aby przywołać jednego z Twoich [agentów AI](/pl/guide/agents) — person, które definiujesz dla projektu. Wybierz jednego z listy, aby asystent odpowiadał w tonie i wiedzy tego agenta. To jedyny sposób dodania dodatkowego kontekstu przez wzmiankę; pozostały kontekst (Twoje tematy, segmenty i pola niestandardowe) jest dostępny dla asystenta automatycznie, więc możesz się do nich odwoływać zwykłym językiem.
+
+## Co możesz zbudować na czacie
+
+<CardGroup cols={2}>
+  <Card title="Kampanie" icon="envelope" href="/pl/guide/campaigns">
+    Wybierz cel — **Newsletter, Aktualizacja produktu, Promocja lub Win-back** — a asystent przygotuje treść, warianty tematu i tekst podglądu w podglądzie e-maila na żywo.
+  </Card>
+  <Card title="Automatyzacje" icon="bolt" href="/pl/guide/automations">
+    Opisz przepływ (lub zacznij od szablonu, np. **Sekwencja powitalna**), a asystent zbuduje graf przepływu na kanwie do przejrzenia i edycji.
+  </Card>
+  <Card title="Segmenty" icon="users" href="/pl/guide/segments">
+    Opisz odbiorców, których chcesz zaadresować, a asystent zbuduje **reguły** segmentu, które pojawiają się w kreatorze reguł w miarę rozmowy.
+  </Card>
+  <Card title="Onboarding" icon="wand-magic-sparkles" href="/pl/guide/getting-started">
+    Podczas onboardingu opisz swój biznes (adres URL lub jedno zdanie), a AI wygeneruje startowy zestaw tematów, segmentów, automatyzacji i szablonów.
+  </Card>
+</CardGroup>
+
+## Kredyty AI i połączenie
+
+- Asystent działa na [kredytach AI](/pl/guide/ai-credits). Wskaźnik kredytów pokazuje, ile zużyłeś, a każda tura AI pokazuje swój koszt. Jeśli zobaczysz **„Wyczerpano kredyty AI — podnieś plan, aby dalej korzystać z AI"**, doładuj lub podnieś plan.
+- Czat łączy się w czasie rzeczywistym. Jeśli połączenie zerwie się, zobaczysz **„Utracono połączenie z AI — Twój postęp jest zapisany"** z przyciskiem **Ponów**; nic z tego, co zbudowałeś, nie przepada.
+- Naciśnij **Enter**, aby wysłać, **Shift+Enter**, aby dodać nową linię.
+
+<Tip>
+  Wolisz precyzję zamiast ręcznego budowania albo odwrotnie? Nie musisz wybierać. Zacznij w **Czacie**, aby szybko dojść do 80% celu, a potem przełącz na **Edytor**, aby dopracować — lub na odwrót.
+</Tip>
