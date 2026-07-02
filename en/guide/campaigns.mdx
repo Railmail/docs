@@ -22,7 +22,7 @@ The settings panel groups everything you configure:
 - **Audience**: the **Topic** (required, one or more) and an optional **Segment**. The recipient count updates live as you choose.
 - **Subject & preview**: the subject line and preview text.
 - **Email settings**: From domain, From name and Reply-to.
-- **A/B testing** and **Send schedule**.
+- **Send schedule**.
 
 ## Preview and test
 
@@ -59,13 +59,15 @@ Each check returns **Pass**, **Warning** or **Fail** with a severity:
 | Draft | Not yet sent. |
 | Scheduled | Queued for a future time. |
 | Queuing / Sending | Being prepared and sent. |
-| Sent | Delivered to the queue successfully. |
+| Sent | Handed off for delivery. Open the report to see how many recipients actually received it. |
 | Paused | Sending paused. |
 | Cancelled | Send cancelled. |
 | Failed | Could not be sent. Open for details or try again. |
 | Archived | Retired from active views. |
 
-Other actions on a campaign: **Send now**, **Pause**, **Duplicate**, **Delete**, **View report** and **Edit**.
+Other actions on a campaign: **Edit**, **Send test email**, **Duplicate**, **Delete** and **View report**.
+
+To stop a **Scheduled** campaign, edit or delete it before its send time. Once sending has started, it cannot be stopped from the app. See [Troubleshooting](/en/guide/troubleshooting) for the full checklist.
 
 <Warning>
   For real sends you need a **verified sending domain** and at least one deliverable recipient. Domain warming can cap how many recipients you can reach per day. See [Sending domain](/en/guide/sending-domain).

@@ -44,24 +44,9 @@ Before you send real email, connect a **sending domain** so messages are authent
   You can explore the app and build drafts before this is done, but a **verified domain** is required for good deliverability. See [Sending domain](/en/guide/sending-domain) for the full walkthrough.
 </Note>
 
-## 3. Add subscribers
+## 3. Create a topic
 
-Bring your audience into Railmail.
-
-<Steps>
-  <Step title="Add one, or import many">
-    In **Subscribers**, click **Add subscriber** for a single contact, or import a **CSV** and map its columns to fields.
-  </Step>
-  <Step title="Pick topics and consent">
-    Every subscriber must be added to at least one **topic**, with a consent source. Keep **double opt-in** enabled unless you have a specific reason not to; it protects your deliverability and keeps you compliant.
-  </Step>
-</Steps>
-
-See [Subscribers](/en/guide/subscribers) for import details, custom fields and consent management.
-
-## 4. Create a topic
-
-A **topic** is a subscription category your subscribers see in their preference center, for example *Product updates* or *Weekly newsletter*.
+A **topic** is a subscription category your subscribers see in their preference center, for example *Product updates* or *Weekly newsletter*. Create it first: every subscriber you add must join at least one topic.
 
 <Steps>
   <Step title="Add a topic">
@@ -73,6 +58,21 @@ A **topic** is a subscription category your subscribers see in their preference 
 </Steps>
 
 More in [Topics](/en/guide/topics).
+
+## 4. Add subscribers
+
+With a topic in place, bring your audience into Railmail.
+
+<Steps>
+  <Step title="Add one, or import many">
+    In **Subscribers**, click **Add subscriber** for a single contact, or import a **CSV** and map its columns to fields.
+  </Step>
+  <Step title="Pick topics and consent">
+    Every subscriber must be added to at least one **topic**, with a consent source. Keep **double opt-in** enabled unless you have a specific reason not to; it protects your deliverability and keeps you compliant.
+  </Step>
+</Steps>
+
+See [Subscribers](/en/guide/subscribers) for import details, custom fields and consent management.
 
 ## 5. (Optional) Narrow your audience with a segment
 
@@ -90,7 +90,7 @@ You can skip this for your first send. See [Segments](/en/guide/segments) when y
     In **Campaigns**, click **New campaign** and choose a mode: the **Editor** (Notion-style blocks, full control) or **Assistant chat** (the assistant guides content creation).
   </Step>
   <Step title="Set the essentials">
-    In **Campaign Settings**, fill in the name, choose the **Topic** (required) and an optional **Segment**, then write the **subject** and **preview text**. The recipient count updates live as you choose your audience.
+    In **Campaign Settings**, fill in the name, choose the **Topic** (required, one or more) and an optional **Segment**, then write the **subject** and **preview text**. The recipient count updates live as you choose your audience.
   </Step>
   <Step title="Preview and test">
     Use **Live Preview** (desktop / tablet / mobile) and **Send test** to email a sample copy to yourself. Save the campaign first if prompted.

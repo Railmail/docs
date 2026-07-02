@@ -1,0 +1,71 @@
+---
+title: "Troubleshooting"
+description: "Checklists for the most common problems: mail not arriving, stuck campaigns, missing confirmations."
+---
+
+Quick answers to the questions that usually come up in a hurry.
+
+## My email isn't arriving
+
+Work through this checklist in order:
+
+<Steps>
+  <Step title="Is your sending domain verified?">
+    Go to **Settings → Domain**. The domain must be **Active**. If it's *Pending verification* or *Verification failed*, fix the DNS records and click **Verify DNS**. See [Sending domain](/en/guide/sending-domain).
+  </Step>
+  <Step title="Are you hitting the warming quota?">
+    New domains send under a daily limit that grows over time. If a campaign reached only part of its audience, check the warming status and daily quota on the Domain page.
+  </Step>
+  <Step title="Check the subscriber's status">
+    Open the subscriber. **Bounced**, **Complained**, **Suppressed** and **Unsubscribed** contacts don't receive mail. **Pending confirmation** means they haven't confirmed double opt-in yet. See [Subscribers](/en/guide/subscribers).
+  </Step>
+  <Step title="Check consent for the topic">
+    A campaign only goes to subscribers with valid consent for its **topic**. Check the subscriber's **Consents** tab.
+  </Step>
+  <Step title="Review the pre-send analysis">
+    Open the campaign and re-run **Send**: the [pre-send analysis](/en/guide/campaigns#pre-send-analysis) flags spam-score, content and configuration problems that hurt delivery.
+  </Step>
+  <Step title="Check the report">
+    The campaign [report](/en/guide/reports) shows delivered vs bounced counts. Hard bounces mean the address is invalid; soft bounces are temporary.
+  </Step>
+</Steps>
+
+## How do I stop or cancel a send?
+
+It depends on the campaign's status:
+
+| Status | What you can do |
+| --- | --- |
+| Draft | Nothing is sending. Edit or delete freely. |
+| Scheduled | **Edit or delete the campaign before its send time.** Removing the schedule stops the send. |
+| Queuing / Sending | The send is in progress and **cannot be stopped from the app**. |
+| Sent | Already delivered to the mail system. |
+
+<Warning>
+  Always send a **test email** and review the pre-send analysis before scheduling. Once sending starts, there is no undo.
+</Warning>
+
+## A subscriber didn't get the double opt-in email
+
+1. Open the subscriber's **Consents** tab and check the topic's consent state.
+2. If it's **Pending confirmation**, use **Resend confirmation**.
+3. Confirmations can **expire**. Resending issues a fresh link.
+4. Ask the subscriber to check their spam folder; if your domain isn't verified yet, confirmation emails are more likely to land there.
+
+## My campaign shows Failed
+
+Open the campaign for details. Common causes are a missing or unverified sending domain, no deliverable recipients, or blocked merge tags. Fix the cause and try sending again.
+
+## The assistant isn't responding
+
+- **"AI credits depleted"**: you're out of credits. Top up or upgrade under **Settings → Subscription**. See [AI credits & plans](/en/guide/ai-credits).
+- **"AI connection lost. Your progress is saved"**: click **Retry**. Your work isn't lost.
+- **Offline**: the chat needs a connection; builders fall back to the Editor while you're offline.
+
+## Email sending is disabled
+
+If your subscription becomes **restricted** (for example, a failed payment), sending is disabled until it's resolved. Check **Settings → Subscription**.
+
+<Tip>
+  Still stuck? Reach out at [support@railmail.app](mailto:support@railmail.app).
+</Tip>

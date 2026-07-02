@@ -1,15 +1,19 @@
 ---
-title: "Quickstart"
-description: "From an API key to your first subscribed user in minutes."
+title: "API quickstart"
+description: "From an API key to your first subscribed user in minutes, over the REST API."
 ---
 
 This guide takes you from zero to a subscriber added to one of your topics, using the [Railmail Public API](/en/api-reference/introduction).
+
+<Note>
+  Looking for your first steps in the Railmail app instead? See [Getting started](/en/guide/getting-started) in the User Guide.
+</Note>
 
 ## Prerequisites
 
 Before you begin, you need:
 
-- A Railmail project with a **project-scoped API key** (format `rm_live_...` or `rm_test_...`). Create one in the [dashboard](https://app.railmail.app).
+- A Railmail project with a **project-scoped API key** (format `rm_live_...` or `rm_test_...`). Create one in the app under **Settings → API Keys**; see [API keys](/en/guide/api-keys). For this guide the key needs the `topics:read` and `subscribers:write` scopes (or **Full access**).
 - A tool to make HTTP requests: `curl`, Postman, or your language's HTTP client.
 
 <Tip>

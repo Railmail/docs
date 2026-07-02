@@ -1,0 +1,49 @@
+---
+title: "API keys"
+description: "Create and manage the keys that give programmatic access to your project."
+---
+
+**API keys** let external systems talk to your project over the [Railmail Public API](/en/api-reference/introduction). Manage them in **Settings → API Keys**.
+
+Each key is scoped to exactly one project: everything it reads or writes is isolated to that project.
+
+## Create a key
+
+<Steps>
+  <Step title="Name it">
+    Give the key a descriptive name, for example *Website signup form* or *CRM sync*.
+  </Step>
+  <Step title="Choose permissions">
+    Pick what the key may do:
+
+    - **Full access**: read and write everything the API exposes.
+    - **Read only**: read data, change nothing.
+    - **Custom**: pick individual scopes, such as *Read subscribers*, *Create & update subscribers*, *Read topics* or *Manage consents*.
+  </Step>
+  <Step title="Choose the environment">
+    - **Live** (`rm_live_...`): for production integrations.
+    - **Test** (`rm_test_...`): for development and testing, without touching live data.
+  </Step>
+  <Step title="Copy the key immediately">
+    The full key is shown **once**, right after creation: *"Copy this key now. You will not be able to see it again."* Store it in a secrets manager or environment variable.
+  </Step>
+</Steps>
+
+<Warning>
+  Treat API keys like passwords. Never commit them to source control or ship them in client-side code. If a key leaks, revoke it immediately.
+</Warning>
+
+## Manage keys
+
+The key list shows each key's name, masked value, environment (**LIVE** / **TEST**), status (**ACTIVE** / **REVOKED**), last used date and creation date. Open a key for its details, or use the actions:
+
+- **Revoke**: immediately stops the key from working. The entry stays for audit purposes.
+- **Delete**: removes the key entirely.
+
+## Least privilege
+
+Grant each key only what it needs. A key used purely to sync subscribers doesn't need campaign or billing access. For the full scope taxonomy the API enforces, see [Authentication](/en/api-reference/authentication).
+
+<Tip>
+  Building your first integration? Follow the [API quickstart](/en/quickstart).
+</Tip>

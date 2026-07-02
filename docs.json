@@ -17,7 +17,7 @@
             "tab": "Guides",
             "pages": [
               {
-                "group": "Getting Started",
+                "group": "Overview",
                 "pages": [
                   "en/index",
                   "en/quickstart"
@@ -35,11 +35,15 @@
                   "en/guide/campaigns",
                   "en/guide/automations",
                   "en/guide/reports",
+                  "en/guide/activity",
                   "en/guide/agents",
                   "en/guide/sending-domain",
+                  "en/guide/api-keys",
                   "en/guide/preference-center",
                   "en/guide/team",
-                  "en/guide/ai-credits"
+                  "en/guide/ai-credits",
+                  "en/guide/shortcuts",
+                  "en/guide/troubleshooting"
                 ]
               }
             ]
@@ -71,7 +75,7 @@
             "tab": "Przewodniki",
             "pages": [
               {
-                "group": "Pierwsze kroki",
+                "group": "Przegląd",
                 "pages": [
                   "pl/index",
                   "pl/quickstart"
@@ -89,11 +93,15 @@
                   "pl/guide/campaigns",
                   "pl/guide/automations",
                   "pl/guide/reports",
+                  "pl/guide/activity",
                   "pl/guide/agents",
                   "pl/guide/sending-domain",
+                  "pl/guide/api-keys",
                   "pl/guide/preference-center",
                   "pl/guide/team",
-                  "pl/guide/ai-credits"
+                  "pl/guide/ai-credits",
+                  "pl/guide/shortcuts",
+                  "pl/guide/troubleshooting"
                 ]
               }
             ]
@@ -121,11 +129,6 @@
     ],
     "global": {
       "anchors": [
-        {
-          "anchor": "API",
-          "href": "https://api.railmail.app",
-          "icon": "code"
-        },
         {
           "anchor": "Portal",
           "href": "https://app.railmail.app",

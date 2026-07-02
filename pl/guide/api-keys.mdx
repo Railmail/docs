@@ -1,0 +1,49 @@
+---
+title: "Klucze API"
+description: "Twórz i zarządzaj kluczami, które dają programistyczny dostęp do projektu."
+---
+
+**Klucze API** pozwalają zewnętrznym systemom komunikować się z Twoim projektem przez [Railmail Public API](/pl/api-reference/introduction). Zarządzasz nimi w **Ustawienia → Klucze API**.
+
+Każdy klucz jest przypisany do dokładnie jednego projektu: wszystko, co odczytuje lub zapisuje, jest izolowane do tego projektu.
+
+## Utwórz klucz
+
+<Steps>
+  <Step title="Nazwij go">
+    Nadaj kluczowi opisową nazwę, na przykład *Formularz zapisu na stronie* albo *Synchronizacja CRM*.
+  </Step>
+  <Step title="Wybierz uprawnienia">
+    Określ, co klucz może robić:
+
+    - **Pełny dostęp**: odczyt i zapis wszystkiego, co udostępnia API.
+    - **Tylko odczyt**: odczyt danych, bez żadnych zmian.
+    - **Niestandardowe**: wybierz pojedyncze zakresy, takie jak *Odczyt subskrybentów*, *Tworzenie i aktualizacja subskrybentów*, *Odczyt tematów* lub *Zarządzanie zgodami*.
+  </Step>
+  <Step title="Wybierz środowisko">
+    - **Live** (`rm_live_...`): dla integracji produkcyjnych.
+    - **Test** (`rm_test_...`): do rozwoju i testów, bez ruszania danych produkcyjnych.
+  </Step>
+  <Step title="Skopiuj klucz od razu">
+    Pełny klucz jest pokazywany **raz**, zaraz po utworzeniu: *„Skopiuj klucz teraz. Nie zobaczysz go ponownie."* Zapisz go w menedżerze sekretów lub zmiennej środowiskowej.
+  </Step>
+</Steps>
+
+<Warning>
+  Traktuj klucze API jak hasła. Nigdy nie umieszczaj ich w repozytorium ani w kodzie po stronie klienta. Jeśli klucz wycieknie, natychmiast go unieważnij.
+</Warning>
+
+## Zarządzanie kluczami
+
+Lista kluczy pokazuje nazwę, zamaskowaną wartość, środowisko (**LIVE** / **TEST**), status (**ACTIVE** / **REVOKED**), datę ostatniego użycia i datę utworzenia. Otwórz klucz, aby zobaczyć szczegóły, lub użyj akcji:
+
+- **Unieważnij**: natychmiast wyłącza działanie klucza. Wpis pozostaje do celów audytowych.
+- **Usuń**: usuwa klucz całkowicie.
+
+## Zasada najmniejszych uprawnień
+
+Przyznawaj każdemu kluczowi tylko to, czego potrzebuje. Klucz służący wyłącznie do synchronizacji subskrybentów nie potrzebuje dostępu do kampanii ani rozliczeń. Pełną taksonomię zakresów wymuszaną przez API znajdziesz w [Uwierzytelnianiu](/pl/api-reference/authentication).
+
+<Tip>
+  Budujesz pierwszą integrację? Przejdź [Szybki start z API](/pl/quickstart).
+</Tip>

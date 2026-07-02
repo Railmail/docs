@@ -1,15 +1,19 @@
 ---
-title: "Szybki start"
-description: "Od klucza API do pierwszego zapisanego użytkownika w kilka minut."
+title: "Szybki start z API"
+description: "Od klucza API do pierwszego zapisanego użytkownika w kilka minut, przez REST API."
 ---
 
 Ten przewodnik przeprowadzi Cię od zera do subskrybenta dodanego do jednego z Twoich tematów, korzystając z [Railmail Public API](/pl/api-reference/introduction).
+
+<Note>
+  Szukasz pierwszych kroków w aplikacji Railmail? Zobacz [Pierwsze kroki](/pl/guide/getting-started) w Przewodniku użytkownika.
+</Note>
 
 ## Wymagania wstępne
 
 Zanim zaczniesz, potrzebujesz:
 
-- Projektu Railmail z **kluczem API przypisanym do projektu** (format `rm_live_...` lub `rm_test_...`). Utwórz go w [panelu](https://app.railmail.app).
+- Projektu Railmail z **kluczem API przypisanym do projektu** (format `rm_live_...` lub `rm_test_...`). Utwórz go w aplikacji w **Ustawienia → Klucze API**; zobacz [Klucze API](/pl/guide/api-keys). Do tego przewodnika klucz potrzebuje zakresów `topics:read` i `subscribers:write` (lub **Pełnego dostępu**).
 - Narzędzia do wykonywania zapytań HTTP: `curl`, Postman lub klienta HTTP w Twoim języku.
 
 <Tip>

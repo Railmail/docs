@@ -1,0 +1,71 @@
+---
+title: "Rozwiązywanie problemów"
+description: "Checklisty najczęstszych problemów: poczta nie dochodzi, kampania utknęła, brak potwierdzeń."
+---
+
+Szybkie odpowiedzi na pytania, które zwykle pojawiają się w pośpiechu.
+
+## Mój e-mail nie dochodzi
+
+Przejdź checklistę po kolei:
+
+<Steps>
+  <Step title="Czy domena wysyłkowa jest zweryfikowana?">
+    Wejdź w **Ustawienia → Domena**. Domena musi być **Aktywna**. Jeśli jest w stanie *Oczekuje weryfikacji* lub *Weryfikacja nieudana*, popraw rekordy DNS i kliknij **Zweryfikuj DNS**. Zobacz [Domena wysyłkowa](/pl/guide/sending-domain).
+  </Step>
+  <Step title="Czy nie ograniczył Cię limit warmingu?">
+    Nowe domeny wysyłają pod dziennym limitem, który rośnie z czasem. Jeśli kampania dotarła tylko do części odbiorców, sprawdź status warmingu i dzienny limit na stronie Domeny.
+  </Step>
+  <Step title="Sprawdź status subskrybenta">
+    Otwórz subskrybenta. Kontakty **Odbite**, **Ze skargą**, **Wykluczone** i **Wypisane** nie otrzymują poczty. **Oczekuje potwierdzenia** oznacza, że nie potwierdził jeszcze double opt-in. Zobacz [Subskrybenci](/pl/guide/subscribers).
+  </Step>
+  <Step title="Sprawdź zgodę na temat">
+    Kampania trafia tylko do subskrybentów z ważną zgodą na jej **temat**. Sprawdź zakładkę **Zgody** subskrybenta.
+  </Step>
+  <Step title="Przejrzyj analizę przedwysyłkową">
+    Otwórz kampanię i ponownie uruchom **Wyślij**: [analiza przedwysyłkowa](/pl/guide/campaigns#analiza-przedwysylkowa) wskaże problemy ze spam score, treścią i konfiguracją, które szkodzą dostarczalności.
+  </Step>
+  <Step title="Sprawdź raport">
+    [Raport](/pl/guide/reports) kampanii pokazuje liczbę dostarczonych i odbitych. Twarde odbicia oznaczają nieprawidłowy adres; miękkie są tymczasowe.
+  </Step>
+</Steps>
+
+## Jak zatrzymać lub anulować wysyłkę?
+
+Zależy od statusu kampanii:
+
+| Status | Co możesz zrobić |
+| --- | --- |
+| Robocza | Nic się nie wysyła. Edytuj lub usuwaj swobodnie. |
+| Zaplanowana | **Edytuj lub usuń kampanię przed czasem wysyłki.** Usunięcie harmonogramu zatrzymuje wysyłkę. |
+| W kolejce / Wysyłanie | Wysyłka trwa i **nie można jej zatrzymać z poziomu aplikacji**. |
+| Wysłana | Już przekazana do systemu pocztowego. |
+
+<Warning>
+  Zawsze wyślij **e-mail testowy** i przejrzyj analizę przedwysyłkową przed zaplanowaniem. Gdy wysyłka ruszy, nie ma odwrotu.
+</Warning>
+
+## Subskrybent nie dostał e-maila double opt-in
+
+1. Otwórz zakładkę **Zgody** subskrybenta i sprawdź stan zgody dla tematu.
+2. Jeśli to **Oczekuje potwierdzenia**, użyj **Wyślij potwierdzenie ponownie**.
+3. Potwierdzenia mogą **wygasnąć**. Ponowna wysyłka generuje świeży link.
+4. Poproś subskrybenta o sprawdzenie folderu spam; jeśli Twoja domena nie jest jeszcze zweryfikowana, e-maile potwierdzające częściej tam trafiają.
+
+## Moja kampania ma status Nieudana
+
+Otwórz kampanię, aby zobaczyć szczegóły. Częste przyczyny to brak lub niezweryfikowana domena wysyłkowa, brak dostarczalnych odbiorców albo zablokowane tagi personalizacji. Usuń przyczynę i spróbuj wysłać ponownie.
+
+## Asystent nie odpowiada
+
+- **„Wyczerpano kredyty AI"**: skończyły się kredyty. Doładuj lub podnieś plan w **Ustawienia → Subskrypcja**. Zobacz [Kredyty AI i plany](/pl/guide/ai-credits).
+- **„Utracono połączenie z AI. Twój postęp jest zapisany"**: kliknij **Ponów**. Twoja praca nie przepada.
+- **Offline**: czat wymaga połączenia; buildery przełączają się na Edytor, gdy jesteś offline.
+
+## Wysyłka e-maili jest wyłączona
+
+Jeśli subskrypcja stanie się **ograniczona** (na przykład nieudana płatność), wysyłka jest wyłączona do czasu rozwiązania. Sprawdź **Ustawienia → Subskrypcja**.
+
+<Tip>
+  Nadal nie działa? Napisz na [support@railmail.app](mailto:support@railmail.app).
+</Tip>

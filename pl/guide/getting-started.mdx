@@ -44,24 +44,9 @@ Zanim wyślesz prawdziwą pocztę, podłącz **domenę wysyłkową**, aby wiadom
   Możesz przeglądać aplikację i budować wersje robocze zanim to zrobisz, ale **zweryfikowana domena** jest wymagana dla dobrej dostarczalności. Zobacz [Domena wysyłkowa](/pl/guide/sending-domain).
 </Note>
 
-## 3. Dodaj subskrybentów
+## 3. Utwórz temat
 
-Wprowadź swoich odbiorców do Railmaila.
-
-<Steps>
-  <Step title="Dodaj jednego lub zaimportuj wielu">
-    W **Subskrybenci** kliknij **Dodaj subskrybenta** dla pojedynczego kontaktu lub zaimportuj plik **CSV** i zmapuj jego kolumny na pola.
-  </Step>
-  <Step title="Wybierz tematy i zgodę">
-    Każdy subskrybent musi zostać dodany do co najmniej jednego **tematu**, ze źródłem zgody. Zostaw włączony **double opt-in**, chyba że masz konkretny powód, by tego nie robić; chroni dostarczalność i utrzymuje zgodność z prawem.
-  </Step>
-</Steps>
-
-Zobacz [Subskrybenci](/pl/guide/subscribers): szczegóły importu, pola niestandardowe i zarządzanie zgodami.
-
-## 4. Utwórz temat
-
-**Temat** to kategoria subskrypcji, którą subskrybent widzi w centrum preferencji, na przykład *Aktualizacje produktu* lub *Cotygodniowy newsletter*.
+**Temat** to kategoria subskrypcji, którą subskrybent widzi w centrum preferencji, na przykład *Aktualizacje produktu* lub *Cotygodniowy newsletter*. Utwórz go najpierw: każdy dodawany subskrybent musi dołączyć do co najmniej jednego tematu.
 
 <Steps>
   <Step title="Dodaj temat">
@@ -73,6 +58,21 @@ Zobacz [Subskrybenci](/pl/guide/subscribers): szczegóły importu, pola niestand
 </Steps>
 
 Więcej w [Tematy](/pl/guide/topics).
+
+## 4. Dodaj subskrybentów
+
+Mając temat, wprowadź swoich odbiorców do Railmaila.
+
+<Steps>
+  <Step title="Dodaj jednego lub zaimportuj wielu">
+    W **Subskrybenci** kliknij **Dodaj subskrybenta** dla pojedynczego kontaktu lub zaimportuj plik **CSV** i zmapuj jego kolumny na pola.
+  </Step>
+  <Step title="Wybierz tematy i zgodę">
+    Każdy subskrybent musi zostać dodany do co najmniej jednego **tematu**, ze źródłem zgody. Zostaw włączony **double opt-in**, chyba że masz konkretny powód, by tego nie robić; chroni dostarczalność i utrzymuje zgodność z prawem.
+  </Step>
+</Steps>
+
+Zobacz [Subskrybenci](/pl/guide/subscribers): szczegóły importu, pola niestandardowe i zarządzanie zgodami.
 
 ## 5. (Opcjonalnie) Zawęź odbiorców segmentem
 
@@ -90,7 +90,7 @@ Możesz to pominąć przy pierwszej wysyłce. Zobacz [Segmenty](/pl/guide/segmen
     W **Kampanie** kliknij **Nowa kampania** i wybierz tryb: **Edytor** (bloki w stylu Notion, pełna kontrola) lub **Czat asystenta** (asystent prowadzi tworzenie treści).
   </Step>
   <Step title="Ustaw podstawy">
-    W **Ustawieniach kampanii** wpisz nazwę, wybierz **Temat** (wymagany) i opcjonalny **Segment**, a następnie napisz **temat wiadomości** i **tekst podglądu**. Liczba odbiorców aktualizuje się na żywo w miarę wyboru odbiorców.
+    W **Ustawieniach kampanii** wpisz nazwę, wybierz **Temat** (wymagany, jeden lub więcej) i opcjonalny **Segment**, a następnie napisz **temat wiadomości** i **tekst podglądu**. Liczba odbiorców aktualizuje się na żywo w miarę wyboru odbiorców.
   </Step>
   <Step title="Podejrzyj i przetestuj">
     Użyj **Podglądu na żywo** (desktop / tablet / mobile) i **Wyślij test**, aby wysłać próbną kopię do siebie. Najpierw zapisz kampanię, jeśli pojawi się taki komunikat.
